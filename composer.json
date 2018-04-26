@@ -10,7 +10,9 @@
   },
   "extra": {
     "laravel": {
-      "providers": []
+      "providers": [
+        "Febalist\\Laravel\\Media\\ServiceProvider"
+      ]
     }
   }
 }
