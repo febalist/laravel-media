@@ -88,7 +88,7 @@ class Media extends Model
 
     protected static function slug($filename)
     {
-        $name = str_slug(pathinfo($filename, PATHINFO_FILENAME));
+        $name = str_slug(pathinfo($filename, PATHINFO_FILENAME), '_') ?: '_';
         $extension = pathinfo($filename, PATHINFO_EXTENSION);
 
         return $name.($extension ? ".$extension" : '');
