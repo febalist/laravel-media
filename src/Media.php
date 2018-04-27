@@ -5,14 +5,17 @@ namespace Febalist\Laravel\Media;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Http\UploadedFile;
+use RuntimeException;
 use Storage;
 use Symfony\Component\HttpFoundation\File\File;
+use URL;
 
 /**
  * @mixin \Eloquent
  * @property-read Model $model
  * @property string     $collection
  * @property string     $name
+ * @property string     $slug
  * @property string     $extension
  * @property integer    $size
  * @property string     $mime
@@ -83,6 +86,14 @@ class Media extends Model
         return $result;
     }
 
+    protected static function slug($filename)
+    {
+        $name = str_slug(pathinfo($filename, PATHINFO_FILENAME));
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+
+        return $name.($extension ? ".$extension" : '');
+    }
+
     protected static function disk()
     {
         return config('media.disk') ?: config('filesystems.default');
@@ -139,11 +150,12 @@ class Media extends Model
 
     public function url($expiration = null)
     {
-        if ($expiration) {
-            return $this->storage()->temporaryUrl($this->path, $expiration);
+        $url = $this->storageUrl($expiration);
+        if (!starts_with($url, 'http')) {
+            return URL::signedRoute('media.download', [$this, $this->slug], $expiration);
         }
 
-        return $this->storage()->url($this->path);
+        return $url;
     }
 
     public function preview($embedded = false)
@@ -164,6 +176,11 @@ class Media extends Model
     public function getNameAttribute()
     {
         return pathinfo($this->path, PATHINFO_BASENAME);
+    }
+
+    public function getSlugAttribute()
+    {
+        return static::slug($this->name);
     }
 
     public function getExtensionAttribute()
@@ -191,9 +208,9 @@ class Media extends Model
         return $this->preview(true);
     }
 
-    public function response()
+    public function response($filename = null, $headers = [])
     {
-        return $this->storage()->response($this->path);
+        return $this->storage()->response($this->path, $filename, $headers);
     }
 
     public function stream()
@@ -209,6 +226,19 @@ class Media extends Model
     public function storage()
     {
         return Storage::disk($this->disk);
+    }
+
+    protected function storageUrl($expiration = null)
+    {
+        try {
+            if ($expiration) {
+                return $this->storage()->temporaryUrl($this->path, $expiration);
+            } else {
+                return $this->storage()->url($this->path);
+            }
+        } catch (RuntimeException $exception) {
+            return null;
+        }
     }
 
     protected function copyFile($disk)
