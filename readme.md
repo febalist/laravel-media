@@ -1,10 +1,10 @@
 ```bash
 composer require febalist/laravel-media
-php artisan vendor:publish --provider Febalist\Laravel\Media\ServiceProvider
+php artisan vendor:publish --provider Febalist\Laravel\Media\MediaServiceProvider
 ``` 
 
 ```dotenv
-MEDIA_DISK=
-MEDIA_PATH=
-MEDIA_QUEUE=
+MEDIA_DISK=public
+MEDIA_PATH=media
+MEDIA_QUEUE=media
 ```

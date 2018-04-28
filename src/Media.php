@@ -2,17 +2,15 @@
 
 namespace Febalist\Laravel\Media;
 
+use Febalist\Laravel\File\File;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Model as Eloquent;
-use Illuminate\Http\UploadedFile;
-use RuntimeException;
-use Storage;
-use Symfony\Component\HttpFoundation\File\File;
 use URL;
 
 /**
  * @mixin \Eloquent
  * @property-read Model $model
+ * @property-read File  $file
  * @property string     $collection
  * @property string     $name
  * @property string     $slug
@@ -21,7 +19,8 @@ use URL;
  * @property string     $mime
  * @property string     $disk
  * @property string     $path
- * @property string     $dir
+ * @property string     $directory
+ * @property boolean    $local
  * @property string     $url
  * @property string     $preview
  * @property string     $embedded
@@ -45,24 +44,21 @@ class Media extends Model
     }
 
     /** @return static */
-    public static function fromFile(File $file)
+    public static function fromFile($file, $disk = null)
     {
-        $name = $file->getFilename();
-        $size = $file->getSize();
-        $mime = $file->getMimeType();
+        $name = File::filename($file);
+        $path = static::path($name);
+        $disk = $disk ?: static::disk();
 
-        if ($file instanceof UploadedFile) {
-            $name = $file->getClientOriginalName() ?: $name;
-            $mime = $file->getClientMimeType() ?: $mime;
-        }
+        $file = File::put($file, $path, $disk);
 
-        $disk = static::disk();
-        $path = Storage::disk($disk)->putFileAs(static::path(), $file, $name);
+        $size = $file->size();
+        $mime = $file->mime();
 
         return static::create(compact('size', 'mime', 'disk', 'path'));
     }
 
-    public static function fromRequest($keys = null)
+    public static function fromRequest($keys = null, $disk = null)
     {
         if (!$keys) {
             $keys = array_keys(request()->allFiles());
@@ -78,7 +74,7 @@ class Media extends Model
                 $files = [$files];
             }
             foreach ($files as $file) {
-                $media = static::fromFile($file);
+                $media = static::fromFile($file, $disk);
                 $result->push($media);
             }
         }
@@ -101,12 +97,7 @@ class Media extends Model
 
     protected static function path($name = '')
     {
-        $prefix = config('media.path');
-        $prefix = $prefix ? str_finish($prefix, '/') : '';
-        $name = $name ? str_start($name, '/') : '';
-        $uuid = str_uuid(true);
-
-        return "$prefix$uuid$name";
+        return File::join(config('media.path'), str_uuid(true), $name);
     }
 
     public function model()
@@ -121,12 +112,19 @@ class Media extends Model
         $this->save();
     }
 
+    public function file()
+    {
+        return new File($this->path, $this->disk);
+    }
+
     public function copy($disk = null)
     {
         $disk = $disk ?: static::disk();
-        $path = $this->copyFile($disk);
+        $path = static::path($this->name);
 
-        $clone = $this->replicate(['model_type', 'model_id', 'collection']);
+        $this->file->copy($path, $disk);
+
+        $clone = $this->replicate(['model_type', 'model_id', 'collection', 'manipulations']);
         $clone->fill(compact('disk', 'path'))->save();
 
         return $clone;
@@ -135,9 +133,11 @@ class Media extends Model
     public function move($disk = null)
     {
         $disk = $disk ?: static::disk();
-        $path = $this->copyFile($disk);
+        $path = static::path($this->name);
 
+        $this->file->move($path, $disk);
         $this->deleteFiles();
+
         $this->fill(compact('disk', 'path'))->save();
 
         return $this;
@@ -145,13 +145,13 @@ class Media extends Model
 
     public function cloud()
     {
-        return $this->move(config('filesystems.cloud'));
+        return $this->move('cloud');
     }
 
     public function url($expiration = null)
     {
-        $url = $this->storageUrl($expiration);
-        if (!starts_with($url, 'http')) {
+        $url = $this->file->url($expiration);
+        if (!starts_with($url, ['http://', 'https://'])) {
             return URL::signedRoute('media.download', [$this, $this->slug], $expiration);
         }
 
@@ -160,22 +160,28 @@ class Media extends Model
 
     public function preview($embedded = false)
     {
+        $extension = $this->extension;
         $url = $this->url;
 
-        if (in_array($this->extension, ['jpg', 'jpeg', 'png', 'gif', 'ico', 'mp3', 'mp4', 'webm', 'txt'])) {
+        if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'ico', 'mp3', 'mp4', 'webm', 'txt'])) {
             return $url;
-        } elseif (in_array($this->extension, ['ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx'])) {
+        } elseif (in_array($extension, ['ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx'])) {
             return 'https://view.officeapps.live.com/op/'.($embedded ? 'embed' : 'view').'.aspx?src='.urlencode($url);
-        } elseif (in_array($this->extension, ['ods', 'sxc', 'csv', 'tsv'])) {
+        } elseif (in_array($extension, ['ods', 'sxc', 'csv', 'tsv'])) {
             return "https://sheet.zoho.com/sheet/view.do?&name=$this->name&url=".urlencode($url);
         } else {
             return 'https://docs.google.com/viewer?'.($embedded ? 'embedded=true&' : '').'url='.urlencode($url);
         }
     }
 
+    public function getFileAttribute()
+    {
+        return $this->file();
+    }
+
     public function getNameAttribute()
     {
-        return pathinfo($this->path, PATHINFO_BASENAME);
+        return $this->file->name();
     }
 
     public function getSlugAttribute()
@@ -185,12 +191,17 @@ class Media extends Model
 
     public function getExtensionAttribute()
     {
-        return pathinfo($this->path, PATHINFO_EXTENSION);
+        return $this->file->extension();
     }
 
-    public function getDirAttribute()
+    public function getDirectoryAttribute()
     {
-        return pathinfo($this->path, PATHINFO_DIRNAME);
+        return $this->file->directory();
+    }
+
+    public function getLocalAttribute()
+    {
+        return $this->file->local();
     }
 
     public function getUrlAttribute()
@@ -210,42 +221,17 @@ class Media extends Model
 
     public function response($filename = null, $headers = [])
     {
-        return $this->storage()->response($this->path, $filename, $headers);
+        return $this->file->response($filename, $headers);
     }
 
     public function stream()
     {
-        return $this->storage()->readStream($this->path);
+        return $this->file->stream();
     }
 
-    public function deleteFiles()
+    public function deleteFiles($directory = null)
     {
-        return $this->storage()->deleteDir($this->dir);
+        return $this->file->storage()->deleteDir($this->directory);
     }
 
-    public function storage()
-    {
-        return Storage::disk($this->disk);
-    }
-
-    protected function storageUrl($expiration = null)
-    {
-        try {
-            if ($expiration) {
-                return $this->storage()->temporaryUrl($this->path, $expiration);
-            } else {
-                return $this->storage()->url($this->path);
-            }
-        } catch (RuntimeException $exception) {
-            return null;
-        }
-    }
-
-    protected function copyFile($disk)
-    {
-        $path = static::path($this->name);
-        Storage::disk($disk)->putStream($path, $this->stream());
-
-        return $path;
-    }
 }

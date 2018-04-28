@@ -35,10 +35,18 @@ trait HasMedia
         return $media;
     }
 
-    /** @return Collection|Media[] */
-    public function addMediaFromRequest($keys = null, $collection = null)
+    public function addMediaFromFile($file, $collection = null, $disk = null)
     {
-        $media = Media::fromRequest($keys);
+        $media = Media::fromFile($file, $disk);
+        $this->addMedia($media, $collection);
+
+        return $media;
+    }
+
+    /** @return Collection|Media[] */
+    public function addMediaFromRequest($keys = null, $collection = null, $disk = null)
+    {
+        $media = Media::fromRequest($keys, $disk);
         $media->each(function (Media $media) use ($collection) {
             $this->addMedia($media, $collection);
         });

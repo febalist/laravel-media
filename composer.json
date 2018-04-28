@@ -6,12 +6,13 @@
     }
   },
   "require": {
-    "illuminate/support": "5.*"
+    "illuminate/support": "5.*",
+    "febalist/laravel-file": "1.*"
   },
   "extra": {
     "laravel": {
       "providers": [
-        "Febalist\\Laravel\\Media\\ServiceProvider"
+        "Febalist\\Laravel\\Media\\MediaServiceProvider"
       ]
     }
   }
