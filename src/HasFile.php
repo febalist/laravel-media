@@ -24,8 +24,8 @@ trait HasFile
 
     public function preview($embedded = false)
     {
-        $extension = $this->extension;
-        $url = $this->url;
+        $extension = $this->file->extension();
+        $url = $this->url();
 
         if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'ico', 'mp3', 'mp4', 'webm', 'txt'])) {
             return $url;
