@@ -5,7 +5,6 @@ namespace Febalist\Laravel\Media;
 use Febalist\Laravel\File\File;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Model as Eloquent;
-use URL;
 
 /**
  * @mixin \Eloquent
@@ -13,25 +12,20 @@ use URL;
  * @property-read File  $file
  * @property string     $collection
  * @property string     $name
- * @property string     $slug
  * @property string     $extension
- * @property integer    $size
  * @property string     $mime
  * @property string     $disk
  * @property string     $path
- * @property string     $directory
- * @property boolean    $local
- * @property string     $url
- * @property string     $preview
- * @property string     $embedded
- * @property array|null $manipulations
+ * @property array      $conversions
  */
 class Media extends Model
 {
+    use HasFile;
+
     protected $guarded = [];
     protected $hidden = [];
     protected $casts = [
-        'manipulations' => 'array',
+        'conversions' => 'array',
     ];
 
     public static function boot()
@@ -82,14 +76,6 @@ class Media extends Model
         return $result;
     }
 
-    protected static function slug($filename)
-    {
-        $name = str_slug(pathinfo($filename, PATHINFO_FILENAME), '_') ?: '_';
-        $extension = pathinfo($filename, PATHINFO_EXTENSION);
-
-        return $name.($extension ? ".$extension" : '');
-    }
-
     protected static function disk()
     {
         return config('media.disk') ?: config('filesystems.default');
@@ -97,7 +83,7 @@ class Media extends Model
 
     protected static function path($name = '')
     {
-        return File::join(config('media.path'), str_uuid(true), $name);
+        return File::path(config('media.path'), str_uuid(true), $name);
     }
 
     public function model()
@@ -124,7 +110,7 @@ class Media extends Model
 
         $this->file->copy($path, $disk);
 
-        $clone = $this->replicate(['model_type', 'model_id', 'collection', 'manipulations']);
+        $clone = $this->replicate(['model_type', 'model_id', 'collection', 'conversions']);
         $clone->fill(compact('disk', 'path'))->save();
 
         return $clone;
@@ -138,7 +124,8 @@ class Media extends Model
         $this->file->move($path, $disk);
         $this->deleteFiles();
 
-        $this->fill(compact('disk', 'path'))->save();
+        $conversions = [];
+        $this->fill(compact('disk', 'path', 'conversions'))->save();
 
         return $this;
     }
@@ -146,32 +133,6 @@ class Media extends Model
     public function cloud()
     {
         return $this->move('cloud');
-    }
-
-    public function url($expiration = null)
-    {
-        $url = $this->file->url($expiration);
-        if (!starts_with($url, ['http://', 'https://'])) {
-            return URL::signedRoute('media.download', [$this, $this->slug], $expiration);
-        }
-
-        return $url;
-    }
-
-    public function preview($embedded = false)
-    {
-        $extension = $this->extension;
-        $url = $this->url;
-
-        if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'ico', 'mp3', 'mp4', 'webm', 'txt'])) {
-            return $url;
-        } elseif (in_array($extension, ['ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx'])) {
-            return 'https://view.officeapps.live.com/op/'.($embedded ? 'embed' : 'view').'.aspx?src='.urlencode($url);
-        } elseif (in_array($extension, ['ods', 'sxc', 'csv', 'tsv'])) {
-            return "https://sheet.zoho.com/sheet/view.do?&name=$this->name&url=".urlencode($url);
-        } else {
-            return 'https://docs.google.com/viewer?'.($embedded ? 'embedded=true&' : '').'url='.urlencode($url);
-        }
     }
 
     public function getFileAttribute()
@@ -184,49 +145,9 @@ class Media extends Model
         return $this->file->name();
     }
 
-    public function getSlugAttribute()
-    {
-        return static::slug($this->name);
-    }
-
     public function getExtensionAttribute()
     {
         return $this->file->extension();
-    }
-
-    public function getDirectoryAttribute()
-    {
-        return $this->file->directory();
-    }
-
-    public function getLocalAttribute()
-    {
-        return $this->file->local();
-    }
-
-    public function getUrlAttribute()
-    {
-        return $this->url();
-    }
-
-    public function getPreviewAttribute()
-    {
-        return $this->preview();
-    }
-
-    public function getEmbeddedAttribute()
-    {
-        return $this->preview(true);
-    }
-
-    public function response($filename = null, $headers = [])
-    {
-        return $this->file->response($filename, $headers);
-    }
-
-    public function stream()
-    {
-        return $this->file->stream();
     }
 
     public function deleteFiles($directory = null)
@@ -234,4 +155,44 @@ class Media extends Model
         return $this->file->storage()->deleteDir($this->directory);
     }
 
+    public function getConversionsAttribute($value)
+    {
+        return list_cleanup(json_decode($value) ?: []);
+    }
+
+    /** @return static */
+    public function convert($name = null, $callback = null)
+    {
+        $file = $this->file->copy(File::temp('jpg'), 'local');
+
+        $image = $file->image()->optimize();
+        if (is_callable($callback)) {
+            $image = $callback($image);
+        }
+        $image->save();
+
+        $file->move([$this->file->directory(), $name, $this->name], $this->disk);
+
+        $conversions = list_cleanup(array_merge($this->conversions, [$name]));
+        $this->update(compact('conversions'));
+
+        return $this;
+    }
+
+    /** @return Conversion|null */
+    public function conversion($name)
+    {
+        if (in_array($name, $this->conversions)) {
+            $file = $this->file->neighbor([$name, $this->name]);
+
+            return new Conversion($this, $file);
+        }
+
+        return null;
+    }
+
+    public function conversionUrl($name, $expiration = null)
+    {
+        return optional($this->conversion($name))->url($expiration);
+    }
 }
