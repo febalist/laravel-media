@@ -76,6 +76,11 @@ class Media extends Model
         return $result;
     }
 
+    public static function fromUrl($url, $disk = null)
+    {
+        return static::fromFile($url, $disk);
+    }
+
     protected static function disk()
     {
         return config('media.disk') ?: config('filesystems.default');

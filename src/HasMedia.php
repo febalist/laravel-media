@@ -35,6 +35,7 @@ trait HasMedia
         return $media;
     }
 
+    /** @return Media */
     public function addMediaFromFile($file, $collection = null, $disk = null)
     {
         $media = Media::fromFile($file, $disk);
@@ -50,6 +51,15 @@ trait HasMedia
         $media->each(function (Media $media) use ($collection) {
             $this->addMedia($media, $collection);
         });
+
+        return $media;
+    }
+
+    /** @return Media */
+    public function addMediaFromUrl($url, $collection = null, $disk = null)
+    {
+        $media = Media::fromUrl($url, $disk);
+        $this->addMedia($media, $collection);
 
         return $media;
     }

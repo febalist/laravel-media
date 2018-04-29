@@ -15,6 +15,7 @@ trait HasFile
         $url = $this->file->url($expiration);
         if (!starts_with($url, ['http://', 'https://'])) {
             $name = File::slug($this->file->name());
+
             return URL::signedRoute('media.download', [$this, $name], $expiration);
         }
 
