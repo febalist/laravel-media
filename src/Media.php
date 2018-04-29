@@ -96,6 +96,9 @@ class Media extends Model
         $this->model()->associate($model);
         $this->collection = $collection;
         $this->save();
+
+        $queue = config('media.queue');
+        MediaConvert::dispatch($this)->onQueue($queue);
     }
 
     public function file()
@@ -161,7 +164,7 @@ class Media extends Model
     }
 
     /** @return static */
-    public function convert($name = null, $callback = null)
+    public function convert($name, $callback)
     {
         $file = $this->file->copy(File::temp('jpg'), 'local');
 
@@ -177,6 +180,12 @@ class Media extends Model
         $this->update(compact('conversions'));
 
         return $this;
+    }
+
+    /** @return static */
+    public function optimize()
+    {
+        return $this->convert(null, null);
     }
 
     /** @return Conversion|null */
