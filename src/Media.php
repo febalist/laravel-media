@@ -181,7 +181,7 @@ class Media extends Model
                 }
                 $image->save();
 
-                $file->move([$this->file->directory(), $name, $this->file->name], $this->disk);
+                $file->move([$this->file->directory, $name, $this->file->name], $this->disk);
 
                 $conversions = list_cleanup(array_merge($this->conversions, [$name]));
                 $this->update(compact('conversions'));
