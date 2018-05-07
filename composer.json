@@ -7,7 +7,7 @@
   },
   "require": {
     "illuminate/support": "5.*",
-    "febalist/laravel-file": "1.*"
+    "febalist/laravel-file": "2.*"
   },
   "extra": {
     "laravel": {

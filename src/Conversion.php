@@ -6,8 +6,6 @@ use Febalist\Laravel\File\File;
 
 class Conversion
 {
-    use HasFile;
-
     public $file;
     protected $media;
 

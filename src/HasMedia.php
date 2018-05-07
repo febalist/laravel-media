@@ -78,32 +78,66 @@ trait HasMedia
         return $this->getAllMedia()->where('collection', $collection);
     }
 
-    /** @return Media */
+    /** @return Media|null */
     public function getFirstMedia($collection = null)
     {
         return $this->getMedia($collection)->first();
     }
 
+    /** @return string|null */
     public function getFirstMediaUrl($collection = null, $expiration = null)
     {
-        return $this->getFirstMediaOptional($collection)->url($expiration);
+        if ($media = $this->getFirstMedia($collection)) {
+            return $media->file->url($expiration);
+        } else {
+            return null;
+        }
     }
 
+    /** @return string|null */
     public function getFirstMediaPreview($collection = null, $embedded = false)
     {
-        return $this->getFirstMediaOptional($collection)->preview($embedded);
+        if ($media = $this->getFirstMedia($collection)) {
+            return $media->file->preview($embedded);
+        } else {
+            return null;
+        }
+    }
+
+    /** @return Conversion|null */
+    public function getFirstMediaConversion($collection = null, $name)
+    {
+        if ($media = $this->getFirstMedia($collection)) {
+            return $media->conversion($name);
+        } else {
+            return null;
+        }
+    }
+
+    /** @return string|null */
+    public function getFirstMediaConversionUrl($collection = null, $name, $expiration = null)
+    {
+        if ($media = $this->getFirstMedia($collection)) {
+            return $media->conversionUrl($name, $expiration);
+        } else {
+            return null;
+        }
+    }
+
+    /** @return string|null */
+    public function getFirstMediaConversionPreview($collection = null, $name, $embedded = false)
+    {
+        if ($media = $this->getFirstMedia($collection)) {
+            return $media->conversionPreview($name, $embedded);
+        } else {
+            return null;
+        }
     }
 
     public function mediaConvert($collection = null, $force = false)
     {
-        $this->getMedia($collection)->each(function (Media $media) use($force) {
+        $this->getMedia($collection)->each(function (Media $media) use ($force) {
             $media->convert($force);
         });
-    }
-
-    /** @return Media */
-    protected function getFirstMediaOptional($collection = null)
-    {
-        return optional($this->getFirstMedia($collection));
     }
 }

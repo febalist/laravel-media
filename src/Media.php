@@ -13,17 +13,12 @@ use Illuminate\Database\Eloquent\Model as Eloquent;
  * @property-read HasMediaModel $model
  * @property-read File          $file
  * @property string             $collection
- * @property string             $name
- * @property string             $extension
- * @property string             $mime
  * @property string             $disk
  * @property string             $path
  * @property array              $conversions
  */
 class Media extends Model
 {
-    use HasFile;
-
     protected static $force_convert = false;
 
     protected $guarded = [];
@@ -44,14 +39,14 @@ class Media extends Model
     /** @return static */
     public static function fromFile($file, $disk = null)
     {
-        $name = File::filename($file);
-        $path = static::path($name);
-        $disk = $disk ?: static::disk();
+        $name = File::getName($file);
+        $path = static::generatePath($name);
+        $disk = $disk ?: static::defaultDisk();
 
         $file = File::put($file, $path, $disk);
 
-        $size = $file->size();
-        $mime = $file->mime();
+        $size = $file->size;
+        $mime = $file->mime;
 
         return static::create(compact('size', 'mime', 'disk', 'path'));
     }
@@ -90,14 +85,14 @@ class Media extends Model
         static::$force_convert = $enabled;
     }
 
-    protected static function disk()
+    protected static function defaultDisk()
     {
         return config('media.disk') ?: config('filesystems.default');
     }
 
-    protected static function path($name = '')
+    protected static function generatePath($name = '')
     {
-        return File::path(config('media.path'), str_uuid(true), $name);
+        return File::pathJoin(config('media.path'), str_uuid(true), $name);
     }
 
     public function model()
@@ -116,15 +111,10 @@ class Media extends Model
         return $this;
     }
 
-    public function file()
-    {
-        return new File($this->path, $this->disk);
-    }
-
     public function copy($disk = null)
     {
-        $disk = $disk ?: static::disk();
-        $path = static::path($this->name);
+        $disk = $disk ?: static::defaultDisk();
+        $path = static::generatePath($this->file->name);
 
         $this->file->copy($path, $disk);
 
@@ -136,8 +126,8 @@ class Media extends Model
 
     public function move($disk = null)
     {
-        $disk = $disk ?: static::disk();
-        $path = static::path($this->name);
+        $disk = $disk ?: static::defaultDisk();
+        $path = static::generatePath($this->file->name);
 
         $this->file->move($path, $disk);
         $this->deleteFiles();
@@ -155,22 +145,12 @@ class Media extends Model
 
     public function getFileAttribute()
     {
-        return $this->file();
-    }
-
-    public function getNameAttribute()
-    {
-        return $this->file->name();
-    }
-
-    public function getExtensionAttribute()
-    {
-        return $this->file->extension();
+        return new File($this->path, $this->disk);
     }
 
     public function deleteFiles($directory = null)
     {
-        return $this->file->storage()->deleteDir($this->directory);
+        return $this->file->storage()->deleteDir($this->file->directory);
     }
 
     public function getConversionsAttribute($value)
@@ -180,8 +160,10 @@ class Media extends Model
 
     public function convert($force = false)
     {
-        $queue = config('media.queue');
-        MediaConvert::dispatch($this, $force)->onQueue($queue);
+        if ($this->file->convertible) {
+            $queue = config('media.queue');
+            MediaConvert::dispatch($this, $force)->onQueue($queue);
+        }
 
         return $this;
     }
@@ -189,19 +171,21 @@ class Media extends Model
     /** @return static */
     public function converter($name, $callback)
     {
-        if (static::$force_convert || $name && !in_array($name, $this->conversions)) {
-            $file = $this->file->copy(File::temp('jpg'), 'local');
+        if ($this->file->convertible) {
+            if (static::$force_convert || $name && !in_array($name, $this->conversions)) {
+                $file = $this->file->copy(File::tempName($this->file->extension), 'local');
 
-            $image = $file->image()->optimize();
-            if (is_callable($callback)) {
-                $image = $callback($image);
+                $image = $file->image()->optimize();
+                if (is_callable($callback)) {
+                    $image = $callback($image);
+                }
+                $image->save();
+
+                $file->move([$this->file->directory(), $name, $this->file->name], $this->disk);
+
+                $conversions = list_cleanup(array_merge($this->conversions, [$name]));
+                $this->update(compact('conversions'));
             }
-            $image->save();
-
-            $file->move([$this->file->directory(), $name, $this->name], $this->disk);
-
-            $conversions = list_cleanup(array_merge($this->conversions, [$name]));
-            $this->update(compact('conversions'));
         }
 
         return $this;
@@ -222,15 +206,30 @@ class Media extends Model
             }
 
             if (in_array($name, $this->conversions)) {
-                return new Conversion($this, $this->file->neighbor([$name, $this->name]));
+                return new Conversion($this, $this->file->neighbor([$name, $this->file->name]));
             }
         }
 
         return null;
     }
 
+    /** @return string|null */
     public function conversionUrl($name, $expiration = null)
     {
-        return optional($this->conversion($name))->url($expiration);
+        if ($conversion = $this->conversion($name)) {
+            return $conversion->file->url($expiration);
+        } else {
+            return null;
+        }
+    }
+
+    /** @return string|null */
+    public function conversionPreview($name, $embedded = false)
+    {
+        if ($conversion = $this->conversion($name)) {
+            return $conversion->file->preview($embedded);
+        } else {
+            return null;
+        }
     }
 }
