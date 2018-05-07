@@ -1,7 +1,8 @@
 <?php
 
-namespace Febalist\Laravel\Media;
+namespace Febalist\Laravel\Media\Jobs;
 
+use Febalist\Laravel\Media\Media;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -13,15 +14,17 @@ class MediaConvert implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $media;
+    protected $force;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(Media $media)
+    public function __construct(Media $media, $force = false)
     {
         $this->media = $media;
+        $this->force = $force;
     }
 
     /**
@@ -32,6 +35,7 @@ class MediaConvert implements ShouldQueue
     public function handle()
     {
         if (method_exists($this->media->model, 'mediaConvert')) {
+            Media::setForceConvert($this->force);
             $this->media->model->mediaConverter($this->media);
         }
     }

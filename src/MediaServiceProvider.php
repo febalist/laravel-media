@@ -2,6 +2,7 @@
 
 namespace Febalist\Laravel\Media;
 
+use Febalist\Laravel\Media\Commands\MediaConvert;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 
 class MediaServiceProvider extends IlluminateServiceProvider
@@ -10,6 +11,11 @@ class MediaServiceProvider extends IlluminateServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../migrations');
         $this->loadRoutesFrom(__DIR__.'/../routes/media.php');
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                MediaConvert::class,
+            ]);
+        }
     }
 
     public function register()

@@ -18,7 +18,9 @@ trait HasMedia
             if (in_array(SoftDeletes::class, class_uses_recursive($model)) && !$model->forceDeleting) {
                 return;
             }
-            $model->media->each->delete();
+            $model->media->each(function (Media $media) {
+                $media->delete();
+            });
         });
     }
 
@@ -92,10 +94,10 @@ trait HasMedia
         return $this->getFirstMediaOptional($collection)->preview($embedded);
     }
 
-    public function mediaConvert($collection = null)
+    public function mediaConvert($collection = null, $force = false)
     {
-        $this->getMedia($collection)->each(function (Media $media) {
-            $media->convert();
+        $this->getMedia($collection)->each(function (Media $media) use($force) {
+            $media->convert($force);
         });
     }
 

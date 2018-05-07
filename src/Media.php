@@ -3,6 +3,7 @@
 namespace Febalist\Laravel\Media;
 
 use Febalist\Laravel\File\File;
+use Febalist\Laravel\Media\Jobs\MediaConvert;
 use Febalist\Laravel\Media\Model as HasMediaModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Model as Eloquent;
@@ -22,6 +23,8 @@ use Illuminate\Database\Eloquent\Model as Eloquent;
 class Media extends Model
 {
     use HasFile;
+
+    protected static $force_convert = false;
 
     protected $guarded = [];
     protected $hidden = [];
@@ -82,6 +85,11 @@ class Media extends Model
         return static::fromFile($url, $disk);
     }
 
+    public static function setForceConvert($enabled = true)
+    {
+        static::$force_convert = $enabled;
+    }
+
     protected static function disk()
     {
         return config('media.disk') ?: config('filesystems.default');
@@ -103,7 +111,7 @@ class Media extends Model
         $this->collection = $collection;
         $this->save();
 
-        $this->convert();
+        $this->convert(true);
 
         return $this;
     }
@@ -170,10 +178,10 @@ class Media extends Model
         return list_cleanup(json_decode($value) ?: []);
     }
 
-    public function convert()
+    public function convert($force = false)
     {
         $queue = config('media.queue');
-        MediaConvert::dispatch($this)->onQueue($queue);
+        MediaConvert::dispatch($this, $force)->onQueue($queue);
 
         return $this;
     }
@@ -181,18 +189,20 @@ class Media extends Model
     /** @return static */
     public function converter($name, $callback)
     {
-        $file = $this->file->copy(File::temp('jpg'), 'local');
+        if (static::$force_convert || $name && !in_array($name, $this->conversions)) {
+            $file = $this->file->copy(File::temp('jpg'), 'local');
 
-        $image = $file->image()->optimize();
-        if (is_callable($callback)) {
-            $image = $callback($image);
+            $image = $file->image()->optimize();
+            if (is_callable($callback)) {
+                $image = $callback($image);
+            }
+            $image->save();
+
+            $file->move([$this->file->directory(), $name, $this->name], $this->disk);
+
+            $conversions = list_cleanup(array_merge($this->conversions, [$name]));
+            $this->update(compact('conversions'));
         }
-        $image->save();
-
-        $file->move([$this->file->directory(), $name, $this->name], $this->disk);
-
-        $conversions = list_cleanup(array_merge($this->conversions, [$name]));
-        $this->update(compact('conversions'));
 
         return $this;
     }
