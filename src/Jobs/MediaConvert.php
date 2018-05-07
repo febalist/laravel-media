@@ -34,9 +34,7 @@ class MediaConvert implements ShouldQueue
      */
     public function handle()
     {
-        if (method_exists($this->media->model, 'mediaConvert')) {
-            Media::setForceConvert($this->force);
-            $this->media->model->mediaConverter($this->media);
-        }
+        Media::setForceConvert($this->force);
+        $this->media->model->mediaConverter($this->media);
     }
 }

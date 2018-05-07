@@ -24,6 +24,11 @@ trait HasMedia
         });
     }
 
+    public function mediaConverter()
+    {
+
+    }
+
     public function media()
     {
         return $this->morphMany(Media::class, 'model');
