@@ -10,14 +10,14 @@ use Illuminate\Database\Eloquent\Model as Eloquent;
 /**
  * @mixin \Eloquent
  * @property-read HasMediaModel $model
- * @property-read File  $file
- * @property string     $collection
- * @property string     $name
- * @property string     $extension
- * @property string     $mime
- * @property string     $disk
- * @property string     $path
- * @property array      $conversions
+ * @property-read File          $file
+ * @property string             $collection
+ * @property string             $name
+ * @property string             $extension
+ * @property string             $mime
+ * @property string             $disk
+ * @property string             $path
+ * @property array              $conversions
  */
 class Media extends Model
 {
@@ -203,13 +203,17 @@ class Media extends Model
         return $this->converter(null, null);
     }
 
-    /** @return Conversion|null */
+    /** @return Conversion|static|null */
     public function conversion($name)
     {
-        if (in_array($name, $this->conversions)) {
-            $file = $this->file->neighbor([$name, $this->name]);
+        foreach (array_wrap($name) as $name) {
+            if (!$name) {
+                return $this;
+            }
 
-            return new Conversion($this, $file);
+            if (in_array($name, $this->conversions)) {
+                return new Conversion($this, $this->file->neighbor([$name, $this->name]));
+            }
         }
 
         return null;
