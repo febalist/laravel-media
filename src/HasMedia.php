@@ -92,6 +92,13 @@ trait HasMedia
         return $this->getFirstMediaOptional($collection)->preview($embedded);
     }
 
+    public function mediaConvert($collection = null)
+    {
+        $this->getMedia($collection)->each(function (Media $media) {
+            $media->convert();
+        });
+    }
+
     /** @return Media */
     protected function getFirstMediaOptional($collection = null)
     {

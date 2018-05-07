@@ -3,12 +3,13 @@
 namespace Febalist\Laravel\Media;
 
 use Febalist\Laravel\File\File;
+use Febalist\Laravel\Media\Model as HasMediaModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 
 /**
  * @mixin \Eloquent
- * @property-read Model $model
+ * @property-read HasMediaModel $model
  * @property-read File  $file
  * @property string     $collection
  * @property string     $name
@@ -102,8 +103,9 @@ class Media extends Model
         $this->collection = $collection;
         $this->save();
 
-        $queue = config('media.queue');
-        MediaConvert::dispatch($this)->onQueue($queue);
+        $this->convert();
+
+        return $this;
     }
 
     public function file()
@@ -168,8 +170,16 @@ class Media extends Model
         return list_cleanup(json_decode($value) ?: []);
     }
 
+    public function convert()
+    {
+        $queue = config('media.queue');
+        MediaConvert::dispatch($this)->onQueue($queue);
+
+        return $this;
+    }
+
     /** @return static */
-    public function convert($name, $callback)
+    public function converter($name, $callback)
     {
         $file = $this->file->copy(File::temp('jpg'), 'local');
 
@@ -190,7 +200,7 @@ class Media extends Model
     /** @return static */
     public function optimize()
     {
-        return $this->convert(null, null);
+        return $this->converter(null, null);
     }
 
     /** @return Conversion|null */

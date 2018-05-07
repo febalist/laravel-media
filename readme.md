@@ -12,11 +12,11 @@ MEDIA_QUEUE=media
 ```php
     use HasMedia;
 
-    public function mediaConvert(Media $media)
+    public function mediaConverter(Media $media)
     {
         $media->optimize();
 
-        $media->convert('thumb', function (Image $image) {
+        $media->converter('thumb', function (Image $image) {
             return $image->fit_crop(400, 300);
         });
     }
