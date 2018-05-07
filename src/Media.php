@@ -41,7 +41,7 @@ class Media extends Model
     {
         $name = File::getName($file);
         $path = static::generatePath($name);
-        $disk = $disk ?: static::defaultDisk();
+        $disk = File::diskName($disk ?: static::defaultDisk());
 
         $file = File::put($file, $path, $disk);
 
@@ -113,7 +113,7 @@ class Media extends Model
 
     public function copy($disk = null)
     {
-        $disk = $disk ?: static::defaultDisk();
+        $disk = File::diskName($disk ?: static::defaultDisk());
         $path = static::generatePath($this->file->name);
 
         $this->file->copy($path, $disk);
@@ -126,7 +126,7 @@ class Media extends Model
 
     public function move($disk = null)
     {
-        $disk = $disk ?: static::defaultDisk();
+        $disk = File::diskName($disk ?: static::defaultDisk());
         $path = static::generatePath($this->file->name);
 
         $this->file->move($path, $disk);
