@@ -41,6 +41,26 @@ class Media extends Model
         return URL::signedRoute('media.gallery', [$ids, 'thumb' => $thumb_conversion]);
     }
 
+    public static function zip($media, $name)
+    {
+        if (!$media instanceof Collection) {
+            $media = collect(array_wrap($media));
+        }
+
+        return File::zip($media->pluck('file'), $name);
+    }
+
+    public static function zipUrl($media, $name)
+    {
+        if (!$media instanceof Collection) {
+            $media = collect(array_wrap($media));
+        }
+
+        $ids = $media->pluck('id')->implode(',');
+
+        return URL::signedRoute('media.zip', [$ids, $name]);
+    }
+
     public static function boot()
     {
         parent::boot();

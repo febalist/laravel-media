@@ -155,8 +155,13 @@ trait HasMedia
     }
 
     /** @return string */
-    public function mediaGalleryUrl($collection = null, $thumb_conversion = null)
+    public function getMediaGalleryUrl($collection = null, $thumb_conversion = null)
     {
         return Media::galleryUrl($this->getMediaImages($collection), $thumb_conversion);
+    }
+
+    public function getMediaZipUrl($collection = null, $name = 'files.zip')
+    {
+        return Media::zipUrl($this->getMedia($collection), $name);
     }
 }
