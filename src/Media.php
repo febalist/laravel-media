@@ -30,7 +30,7 @@ class Media extends Model
     ];
 
     /** @return string */
-    public static function galleryUrl($media, $thumb_conversion = null)
+    public static function galleryUrl($media, $conversion = null)
     {
         if (!$media instanceof Collection) {
             $media = collect(array_wrap($media));
@@ -38,7 +38,12 @@ class Media extends Model
 
         $ids = $media->pluck('id')->implode(',');
 
-        return URL::signedRoute('media.gallery', [$ids, 'thumb' => $thumb_conversion]);
+        $parameters = [$ids];
+        if ($conversion) {
+            $parameters['conversion'] = $conversion;
+        }
+
+        return URL::signedRoute('media.gallery', $parameters);
     }
 
     public static function zip($media, $name)
@@ -244,15 +249,17 @@ class Media extends Model
     }
 
     /** @return Conversion|static|null */
-    public function conversion($name)
+    public function conversion($names)
     {
-        foreach (array_wrap($name) as $name) {
+        $names = array_wrap($names) ?: [null];
+
+        foreach ($names as $name) {
             if (!$name) {
                 return $this;
             }
 
             if (in_array($name, $this->conversions)) {
-                return new Conversion($this, $this->file->neighbor([$name, $this->file->name]));
+                return new Conversion($this, $this->file->neighbor([$name, $this->file->name()]));
             }
         }
 

@@ -16,17 +16,16 @@ class MediaController extends Controller
     {
         $media = Media::findMany(explode(',', $ids));
 
-        $urls = [];
-        $media->each(function (Media $media) use (&$urls) {
-            $thumb = $media->conversion([request('thumb'), null]);
-            if ($thumb) {
-                $urls[$thumb->file->url] = $media->file->url;
-            } else {
-                $urls[] = $media->file->url;
-            }
-        });
+        $conversion = request('conversion');
 
-        $url = File::galleryUrl($urls);
+        $files = $media->map(function (Media $media) use ($conversion) {
+            $conversion = $media->conversion($conversion);
+            if ($conversion) {
+                return $conversion->file;
+            }
+        })->filter();
+
+        $url = File::galleryUrl($files);
 
         return redirect($url);
     }
