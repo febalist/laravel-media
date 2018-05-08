@@ -39,7 +39,7 @@ class Media extends Model
     /** @return static */
     public static function fromFile($file, $disk = null)
     {
-        $name = File::getName($file);
+        $name = File::fileName($file);
         $path = static::generatePath($name);
         $disk = File::diskName($disk ?: static::defaultDisk());
 
@@ -185,7 +185,7 @@ class Media extends Model
     {
         if ($this->file->convertible) {
             if (static::$force_convert || $name && !in_array($name, $this->conversions)) {
-                $file = $this->file->copy(File::tempName($this->file->extension), 'local');
+                $file = $this->file->copyTemp();
 
                 $image = $file->image()->optimize();
                 if (is_callable($callback)) {
