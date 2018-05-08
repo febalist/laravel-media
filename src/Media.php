@@ -158,11 +158,23 @@ class Media extends Model
         return list_cleanup(json_decode($value) ?: []);
     }
 
-    public function convert($force = false)
+    public function convert($force = false, $run = false)
     {
-        if ($this->file->convertible) {
-            $queue = config('media.queue');
-            MediaConvert::dispatch($this, $force)->onQueue($queue);
+        if ($run) {
+            Media::setForceConvert($force);
+            if ($force) {
+                $directories = $this->file->storage->directories($this->file->directory);
+                foreach ($directories as $directory) {
+                    $this->file->storage->deleteDirectory($directory);
+                }
+                $this->update(['conversions' => []]);
+            }
+            $this->model->mediaConverter($this);
+        } else {
+            if ($this->file->convertible) {
+                $queue = config('media.queue');
+                MediaConvert::dispatch($this, $force)->onQueue($queue);
+            }
         }
 
         return $this;
