@@ -83,6 +83,14 @@ trait HasMedia
         return $this->getAllMedia()->where('collection', $collection);
     }
 
+    /** @return Collection|Media[] */
+    public function getMediaImages($collection = null)
+    {
+        return $this->getMedia($collection)->filter(function (Media $media) {
+            return $media->file->type == 'image';
+        });
+    }
+
     /** @return Media|null */
     public function getFirstMedia($collection = null)
     {
@@ -144,5 +152,11 @@ trait HasMedia
         $this->getMedia($collection)->each(function (Media $media) use ($force) {
             $media->convert($force);
         });
+    }
+
+    /** @return string */
+    public function mediaGalleryUrl($collection = null, $thumb_conversion = null)
+    {
+        return Media::galleryUrl($this->getMediaImages($collection), $thumb_conversion);
     }
 }

@@ -9,6 +9,7 @@ class MediaServiceProvider extends IlluminateServiceProvider
 {
     public function boot()
     {
+        $this->loadRoutesFrom(__DIR__.'/../routes/media.php');
         $this->loadMigrationsFrom(__DIR__.'/../migrations');
         if ($this->app->runningInConsole()) {
             $this->commands([

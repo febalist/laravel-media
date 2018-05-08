@@ -7,6 +7,8 @@ use Febalist\Laravel\Media\Jobs\MediaConvert;
 use Febalist\Laravel\Media\Model as HasMediaModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Model as Eloquent;
+use Illuminate\Support\Collection;
+use URL;
 
 /**
  * @mixin \Eloquent
@@ -26,6 +28,18 @@ class Media extends Model
     protected $casts = [
         'conversions' => 'array',
     ];
+
+    /** @return string */
+    public static function galleryUrl($media, $thumb_conversion = null)
+    {
+        if (!$media instanceof Collection) {
+            $media = collect(array_wrap($media));
+        }
+
+        $ids = $media->pluck('id')->implode(',');
+
+        return URL::signedRoute('media.gallery', [$ids, 'thumb' => $thumb_conversion]);
+    }
 
     public static function boot()
     {
