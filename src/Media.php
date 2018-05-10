@@ -277,12 +277,18 @@ class Media extends Model
     }
 
     /** @return string|null */
-    public function conversionPreview($name, $embedded = false)
+    public function conversionView($name, $expiration = null)
     {
         if ($conversion = $this->conversion($name)) {
-            return $conversion->file->preview($embedded);
+            return $conversion->file->view($expiration);
         } else {
             return null;
         }
+    }
+
+    /** @deprecated */
+    public function conversionPreview($name, $embedded = false)
+    {
+        return $this->conversionView($name);
     }
 }

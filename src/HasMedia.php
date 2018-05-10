@@ -108,13 +108,19 @@ trait HasMedia
     }
 
     /** @return string|null */
-    public function getFirstMediaPreview($collection = null, $embedded = false)
+    public function getFirstMediaView($collection = null, $expiration = null)
     {
         if ($media = $this->getFirstMedia($collection)) {
-            return $media->file->preview($embedded);
+            return $media->file->view($expiration);
         } else {
             return null;
         }
+    }
+
+    /** @deprecated  */
+    public function getFirstMediaPreview($collection = null, $embedded = false)
+    {
+        return $this->getFirstMediaView($collection);
     }
 
     /** @return Conversion|null */
