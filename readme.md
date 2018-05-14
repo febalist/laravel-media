@@ -17,7 +17,7 @@ MEDIA_QUEUE=media
         $media->optimize();
 
         $media->converter('thumb', function (Image $image) {
-            return $image->fit_crop(400, 300);
+            return $image->fit_crop(800, 450);
         });
     }
 ```
