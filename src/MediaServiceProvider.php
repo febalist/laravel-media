@@ -15,6 +15,7 @@ class MediaServiceProvider extends IlluminateServiceProvider
                 Commands\MediaConvert::class,
                 Commands\MediaMove::class,
                 Commands\MediaClear::class,
+                Commands\MediaDelete::class,
             ]);
         }
     }
