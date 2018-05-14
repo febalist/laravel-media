@@ -4,6 +4,7 @@ namespace Febalist\Laravel\Media\Commands;
 
 use Febalist\Laravel\Media\Media;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class MediaMove extends Command
@@ -13,7 +14,7 @@ class MediaMove extends Command
      *
      * @var string
      */
-    protected $signature = 'media:move {disk?}';
+    protected $signature = 'media:move {disk?} {--force}';
 
     /**
      * The console command description.
@@ -30,8 +31,11 @@ class MediaMove extends Command
     public function handle()
     {
         $disk = $this->argument('disk');
+        $force = $this->option('force');
 
-        Media::chunk(500, function (Collection $media) use ($disk) {
+        Media::when(!$force, function (Builder $query) use ($disk) {
+            return $query->where('disk', '!=', $disk);
+        })->chunk(500, function (Collection $media) use ($disk) {
             $media->each(function (Media $media) use ($disk) {
                 $media->move($disk);
                 $media->convert();
