@@ -61,6 +61,7 @@ class Media extends Model
             $media = collect(array_wrap($media));
         }
 
+        $name = File::slugName($name);
         $ids = $media->pluck('id')->implode(',');
 
         return URL::signedRoute('media.zip', [$ids, $name]);

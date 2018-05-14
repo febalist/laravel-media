@@ -117,7 +117,7 @@ trait HasMedia
         }
     }
 
-    /** @deprecated  */
+    /** @deprecated */
     public function getFirstMediaPreview($collection = null, $embedded = false)
     {
         return $this->getFirstMediaView($collection);
@@ -143,11 +143,21 @@ trait HasMedia
         }
     }
 
-    /** @return string|null */
+    /** @deprecated */
     public function getFirstMediaConversionPreview($collection = null, $name, $embedded = false)
     {
         if ($media = $this->getFirstMedia($collection)) {
             return $media->conversionPreview($name, $embedded);
+        } else {
+            return null;
+        }
+    }
+
+    /** @return string|null */
+    public function getFirstMediaConversionView($collection = null, $name, $embedded = false)
+    {
+        if ($media = $this->getFirstMedia($collection)) {
+            return $media->conversionView($name, $embedded);
         } else {
             return null;
         }
@@ -160,14 +170,17 @@ trait HasMedia
         });
     }
 
-    /** @return string */
+    /** @return string|null */
     public function getMediaGalleryUrl($collection = null, $conversion = null)
     {
-        return Media::galleryUrl($this->getMedia($collection), $conversion);
+        $media = $this->getMedia($collection);
+        return $media->count() ? Media::galleryUrl($media, $conversion) : null;
     }
 
+    /** @return string|null */
     public function getMediaZipUrl($collection = null, $name = 'files.zip')
     {
-        return Media::zipUrl($this->getMedia($collection), $name);
+        $media = $this->getMedia($collection);
+        return $media->count() ? Media::zipUrl($media, $name) : null;
     }
 }
