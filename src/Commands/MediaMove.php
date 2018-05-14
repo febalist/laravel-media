@@ -34,6 +34,7 @@ class MediaMove extends Command
         Media::chunk(500, function (Collection $media) use ($disk) {
             $media->each(function (Media $media) use ($disk) {
                 $media->move($disk);
+                $media->convert();
             });
         });
     }
