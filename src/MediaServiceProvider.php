@@ -14,6 +14,7 @@ class MediaServiceProvider extends IlluminateServiceProvider
             $this->commands([
                 Commands\MediaConvert::class,
                 Commands\MediaMove::class,
+                Commands\MediaClear::class,
             ]);
         }
     }

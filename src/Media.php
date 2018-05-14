@@ -18,6 +18,8 @@ use URL;
  * @property string             $disk
  * @property string             $path
  * @property array              $conversions
+ * @property string             $model_type
+ * @property integer            $model_id
  */
 class Media extends Model
 {
@@ -209,7 +211,9 @@ class Media extends Model
                 }
                 $this->update(['conversions' => []]);
             }
-            $this->model->mediaConverter($this);
+            if (method_exists($this->model, 'mediaConverter')) {
+                $this->model->mediaConverter($this);
+            }
         } else {
             if ($this->file->convertible) {
                 $queue = config('media.queue');
