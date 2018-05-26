@@ -81,7 +81,7 @@ class Media extends Model
     /** @return static */
     public static function fromFile($file, $disk = null)
     {
-        $name = File::fileName($file);
+        $name = File::fileName($file, true);
         $path = static::generatePath($name);
         $disk = File::diskName($disk ?: static::defaultDisk());
 
