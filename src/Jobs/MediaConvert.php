@@ -5,13 +5,16 @@ namespace Febalist\Laravel\Media\Jobs;
 use Febalist\Laravel\Media\Media;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
 class MediaConvert implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels {
+        getRestoredPropertyValue as getRestoredPropertyValueTrait;
+    }
 
     protected $media;
     protected $force;
@@ -34,6 +37,17 @@ class MediaConvert implements ShouldQueue
      */
     public function handle()
     {
-        $this->media->convert($this->force, true);
+        if ($this->media) {
+            $this->media->convert($this->force, true);
+        }
+    }
+
+    protected function getRestoredPropertyValue($value)
+    {
+        try {
+            return $this->getRestoredPropertyValueTrait($value);
+        } catch (ModelNotFoundException $exception) {
+            return null;
+        }
     }
 }
