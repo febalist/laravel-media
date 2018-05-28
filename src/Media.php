@@ -217,7 +217,11 @@ class Media extends Model
         } else {
             if ($this->file->convertible) {
                 $queue = config('media.queue');
-                MediaConvert::dispatch($this, $force)->onQueue($queue);
+                if ($queue) {
+                    MediaConvert::dispatch($this, $force)->onQueue($queue);
+                } else {
+                    MediaConvert::dispatchNow($this, $force);
+                }
             }
         }
 
