@@ -79,13 +79,13 @@ class Media extends Model
     }
 
     /** @return static */
-    public static function fromFile($file, $disk = null)
+    public static function fromFile($file, $disk = null, $delete = false)
     {
         $name = File::fileName($file, true);
         $path = static::generatePath($name);
         $disk = File::diskName($disk ?: static::defaultDisk());
 
-        $file = File::put($file, $path, $disk);
+        $file = File::put($file, $path, $disk, $delete);
 
         $size = $file->size;
         $mime = $file->mime;
@@ -109,7 +109,7 @@ class Media extends Model
                 $files = [$files];
             }
             foreach ($files as $file) {
-                $media = static::fromFile($file, $disk);
+                $media = static::fromFile($file, $disk, true);
                 $result->push($media);
             }
         }

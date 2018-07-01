@@ -43,9 +43,9 @@ trait HasMedia
     }
 
     /** @return Media */
-    public function addMediaFromFile($file, $collection = null, $disk = null)
+    public function addMediaFromFile($file, $collection = null, $disk = null, $delete = false)
     {
-        $media = Media::fromFile($file, $disk);
+        $media = Media::fromFile($file, $disk, $delete);
         $this->addMedia($media, $collection);
 
         return $media;
