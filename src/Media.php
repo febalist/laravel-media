@@ -185,6 +185,12 @@ class Media extends Model
         return $this->move('cloud');
     }
 
+    public function rename($name)
+    {
+        $path = $this->file->rename($name)->path;
+        $this->update(compact('path'));
+    }
+
     public function getFileAttribute()
     {
         return new File($this->path, $this->disk);
