@@ -12,6 +12,7 @@ use URL;
  * @property-read Model $model
  * @property-read File  $file
  * @property string     $disk
+ * @property string     $target_disk
  * @property string     $path
  * @property integer    $size
  * @property string     $mime
@@ -76,14 +77,15 @@ class Media extends Model
     {
         $name = File::slugName($name) ?: File::fileName($file, true);
         $path = static::generatePath($name);
-        $disk = File::diskName($disk ?: static::defaultDisk());
+        $disk = static::preliminaryDisk();
+        $target_disk = File::diskName($disk ?: static::defaultDisk());
 
         $file = File::put($file, $path, $disk, $delete);
 
         $size = $file->size;
         $mime = $file->mime;
 
-        return static::create(compact('size', 'mime', 'disk', 'path'));
+        return static::create(compact('size', 'mime', 'disk', 'target_disk', 'path'));
     }
 
     public static function fromRequest($keys = null, $disk = null, $name = null)
@@ -120,6 +122,11 @@ class Media extends Model
         static::$force_convert = $enabled;
     }
 
+    protected static function preliminaryDisk()
+    {
+        return config('media.preliminary_disk') ?: 'public';
+    }
+
     protected static function defaultDisk()
     {
         return config('media.disk') ?: config('filesystems.default');
@@ -147,7 +154,8 @@ class Media extends Model
 
     public function copy($disk = null)
     {
-        $disk = File::diskName($disk ?: static::defaultDisk());
+        $target_disk = File::diskName($disk ?: static::defaultDisk());
+        $disk = $target_disk;
         $path = static::generatePath($this->file->name);
 
         $this->file->copy($path, $disk);
@@ -156,14 +164,15 @@ class Media extends Model
         });
 
         $clone = $this->replicate(['model_type', 'model_id']);
-        $clone->fill(compact('disk', 'path'))->save();
+        $clone->fill(compact('disk', 'target_disk', 'path'))->save();
 
         return $clone;
     }
 
     public function move($disk = null)
     {
-        $disk = File::diskName($disk ?: static::defaultDisk());
+        $target_disk = File::diskName($disk ?: static::defaultDisk());
+        $disk = $target_disk;
         $path = static::generatePath($this->file->name);
 
         $this->file->move($path, $disk);
@@ -172,7 +181,7 @@ class Media extends Model
         });
         $this->deleteFiles();
 
-        $this->fill(compact('disk', 'path'))->save();
+        $this->fill(compact('disk', 'target_disk', 'path'))->save();
 
         return $this;
     }
@@ -215,6 +224,9 @@ class Media extends Model
             }
             if (method_exists($this->model, 'mediaConvert')) {
                 $this->model->mediaConvert($this);
+            }
+            if ($this->target_disk && $this->disk != $this->target_disk) {
+                $this->move($this->target_disk);
             }
         } else {
             if ($this->file->convertible) {
