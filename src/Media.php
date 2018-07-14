@@ -260,6 +260,12 @@ class Media extends Model
         return null;
     }
 
+    /** @return Conversion|self */
+    public function getConversionOrOriginal($name, $check = false)
+    {
+        return $this->getConversion($name, $check) ?: $this;
+    }
+
     /** @return string|null */
     public function conversionUrl($name, $expiration = null)
     {
