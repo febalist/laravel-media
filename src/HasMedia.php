@@ -71,6 +71,21 @@ trait HasMedia
         return $media;
     }
 
+    public function deleteMedia()
+    {
+        $this->getMedia()->each(function (Media $media) {
+            $media->delete();
+        });
+    }
+
+    public function deleteMediaExceptLast()
+    {
+        $this->getMedia()->sortByDesc('created_at')->slice(1)
+            ->each(function (Media $media) {
+                $media->delete();
+            });
+    }
+
     /** @return Collection|Media[] */
     public function getMedia()
     {
@@ -132,10 +147,10 @@ trait HasMedia
     }
 
     /** @return string|null */
-    public function getFirstMediaConversionView($name, $embedded = false)
+    public function getFirstMediaConversionView($name)
     {
         if ($media = $this->getFirstMedia()) {
-            return $media->conversionView($name, $embedded);
+            return $media->conversionView($name);
         } else {
             return null;
         }
