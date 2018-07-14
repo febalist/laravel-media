@@ -266,26 +266,6 @@ class Media extends Model
         return $this->getConversion($name, $check) ?: $this;
     }
 
-    /** @return string|null */
-    public function conversionUrl($name, $expiration = null)
-    {
-        if ($conversion = $this->getConversion($name)) {
-            return $conversion->file->url($expiration);
-        } else {
-            return null;
-        }
-    }
-
-    /** @return string|null */
-    public function conversionView($name, $expiration = null)
-    {
-        if ($conversion = $this->getConversion($name)) {
-            return $conversion->file->view($expiration);
-        } else {
-            return null;
-        }
-    }
-
     public function getAbandonedAttribute()
     {
         if (!$this->model_id) {

@@ -107,56 +107,6 @@ trait HasMedia
     }
 
     /** @return string|null */
-    public function getFirstMediaUrl($expiration = null)
-    {
-        if ($media = $this->getFirstMedia()) {
-            return $media->file->url($expiration);
-        } else {
-            return null;
-        }
-    }
-
-    /** @return string|null */
-    public function getFirstMediaView($expiration = null)
-    {
-        if ($media = $this->getFirstMedia()) {
-            return $media->file->view($expiration);
-        } else {
-            return null;
-        }
-    }
-
-    /** @return Conversion|null */
-    public function getFirstMediaConversion($name)
-    {
-        if ($media = $this->getFirstMedia()) {
-            return $media->getConversion($name);
-        } else {
-            return null;
-        }
-    }
-
-    /** @return string|null */
-    public function getFirstMediaConversionUrl($name, $expiration = null)
-    {
-        if ($media = $this->getFirstMedia()) {
-            return $media->conversionUrl($name, $expiration);
-        } else {
-            return null;
-        }
-    }
-
-    /** @return string|null */
-    public function getFirstMediaConversionView($name)
-    {
-        if ($media = $this->getFirstMedia()) {
-            return $media->conversionView($name);
-        } else {
-            return null;
-        }
-    }
-
-    /** @return string|null */
     public function getMediaGalleryUrl()
     {
         $media = $this->getMedia();
