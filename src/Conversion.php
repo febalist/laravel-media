@@ -12,6 +12,7 @@ class Conversion
 
     public function __construct($name, Media $media, File $file)
     {
+        $this->name = $name;
         $this->media = $media;
         $this->file = $file;
     }

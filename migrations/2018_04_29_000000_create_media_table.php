@@ -18,7 +18,7 @@ class CreateMediaTable extends Migration
             $table->string('mime')->nullable();
             $table->string('disk');
             $table->string('path');
-            $table->json('conversions')->nullable()->default(null);
+            $table->json('conversions')->default('[]');
             $table->timestamps();
         });
     }

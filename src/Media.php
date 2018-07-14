@@ -74,10 +74,10 @@ class Media extends Model
     /** @return static */
     public static function fromFile($file, $disk = null, $name = null, $delete = false)
     {
-        $name = File::slugName($name) ?: File::fileName($file, true);
+        $name = $name ? File::slugName($name) : File::fileName($file, true);
         $path = static::generatePath($name);
-        $disk = static::preliminaryDisk();
         $target_disk = File::diskName($disk ?: static::defaultDisk());
+        $disk = static::preliminaryDisk();
 
         $file = File::put($file, $path, $disk, $delete);
 
@@ -87,25 +87,16 @@ class Media extends Model
         return static::create(compact('size', 'mime', 'disk', 'target_disk', 'path'));
     }
 
-    public static function fromRequest($keys = null, $disk = null, $name = null)
+    public static function fromRequest($key = null, $disk = null, $name = null)
     {
-        if (!$keys) {
-            $keys = array_keys(request()->allFiles());
-        } elseif (!is_array($keys)) {
-            $keys = [$keys];
-        }
-
         $result = collect();
 
-        foreach ($keys as $key) {
-            $files = request()->file($key);
-            if (!is_array($files)) {
-                $files = [$files];
-            }
-            foreach ($files as $file) {
-                $media = static::fromFile($file, $disk, $name, true);
-                $result->push($media);
-            }
+        $files = $key ? request()->file($key) : request()->allFiles();
+        $files = array_wrap(array_flatten($files));
+
+        foreach ($files as $file) {
+            $media = static::fromFile($file, $disk, $name, true);
+            $result->push($media);
         }
 
         return $result;
@@ -235,8 +226,7 @@ class Media extends Model
             }
         } else {
             if ($this->file->convertible) {
-                $queue = config('media.queue');
-                if ($queue) {
+                if ($queue = config('media.queue')) {
                     MediaConvert::dispatch($this)->onQueue($queue);
                 } else {
                     MediaConvert::dispatchNow($this);

@@ -52,9 +52,9 @@ trait HasMedia
     }
 
     /** @return Collection|Media[] */
-    public function addMediaFromRequest($keys = null, $disk = null, $name = null)
+    public function addMediaFromRequest($key = null, $disk = null, $name = null)
     {
-        $media = Media::fromRequest($keys, $disk, $name);
+        $media = Media::fromRequest($key, $disk, $name);
         $media->each(function (Media $media) {
             $this->addMedia($media);
         });
