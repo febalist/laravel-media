@@ -107,6 +107,26 @@ trait HasMedia
     }
 
     /** @return string|null */
+    public function getFirstMediaUrl($conversion = null, $expiration = null)
+    {
+        if ($media = $this->getFirstMedia()) {
+            return $media->url($conversion, $expiration);
+        } else {
+            return null;
+        }
+    }
+
+    /** @return string|null */
+    public function getFirstMediaView($conversion = null, $expiration = null)
+    {
+        if ($media = $this->getFirstMedia()) {
+            return $media->view($conversion, $expiration);
+        } else {
+            return null;
+        }
+    }
+
+    /** @return string|null */
     public function getMediaGalleryUrl()
     {
         $media = $this->getMedia();

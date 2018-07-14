@@ -266,6 +266,18 @@ class Media extends Model
         return in_array($name, $this->conversions);
     }
 
+    /** @return string|null */
+    public function url($conversion = null, $expiration = null)
+    {
+        return $this->getConversion($conversion)->file->url($expiration);
+    }
+
+    /** @return string|null */
+    public function view($conversion = null, $expiration = null)
+    {
+        return $this->getConversion($conversion)->file->view($expiration);
+    }
+
     public function getAbandonedAttribute()
     {
         if (!$this->model_id) {
