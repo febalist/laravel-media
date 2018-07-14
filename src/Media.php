@@ -135,7 +135,7 @@ class Media extends Model
         return $this->morphTo();
     }
 
-    public function associate(Eloquent $model)
+    public function associate(Model $model)
     {
         $this->model()->associate($model);
         $this->save();
