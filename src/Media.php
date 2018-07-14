@@ -97,9 +97,7 @@ class Media extends Model
     {
         $result = collect();
 
-        $files = $key ? request()->file($key) : request()->allFiles();
-        $files = array_wrap(array_flatten($files));
-
+        $files = array_wrap_flatten($key ? request()->file($key) : request()->allFiles());
         foreach ($files as $file) {
             $media = static::fromFile($file, $disk, $name, true);
             $result->push($media);
