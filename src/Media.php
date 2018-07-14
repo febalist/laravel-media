@@ -249,19 +249,22 @@ class Media extends Model
         return $this->converter(null, null);
     }
 
-    /** @return Conversion|static|null */
-    public function conversion($names)
+    /** @return Collection|Conversion[] */
+    public function getConversions($check = false)
     {
-        $names = array_wrap($names) ?: [null];
+        $conversions = collect();
+        foreach ($this->conversions as $name) {
+            $conversions->push($this->getConversion($name, $check));
+        }
 
-        foreach ($names as $name) {
-            if (!$name) {
-                return $this;
-            }
+        return $conversions;
+    }
 
-            if (in_array($name, $this->conversions)) {
-                return new Conversion($this, $this->file->neighbor([$name, $this->file->name()]));
-            }
+    /** @return Conversion|null */
+    public function getConversion($name, $check = false)
+    {
+        if (in_array($name, $this->conversions)) {
+            return new Conversion($name, $this, $this->file->neighbor([$name, $this->file->name()], $check));
         }
 
         return null;
@@ -270,7 +273,7 @@ class Media extends Model
     /** @return string|null */
     public function conversionUrl($name, $expiration = null)
     {
-        if ($conversion = $this->conversion($name)) {
+        if ($conversion = $this->getConversion($name)) {
             return $conversion->file->url($expiration);
         } else {
             return null;
@@ -280,7 +283,7 @@ class Media extends Model
     /** @return string|null */
     public function conversionView($name, $expiration = null)
     {
-        if ($conversion = $this->conversion($name)) {
+        if ($conversion = $this->getConversion($name)) {
             return $conversion->file->view($expiration);
         } else {
             return null;

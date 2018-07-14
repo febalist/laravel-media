@@ -115,7 +115,7 @@ trait HasMedia
     public function getFirstMediaConversion($name)
     {
         if ($media = $this->getFirstMedia()) {
-            return $media->conversion($name);
+            return $media->getConversion($name);
         } else {
             return null;
         }
