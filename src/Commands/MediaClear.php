@@ -20,7 +20,7 @@ class MediaClear extends Command
      *
      * @var string
      */
-    protected $description = 'Delete media without models or files';
+    protected $description = 'Delete media with fully deleted models or files';
 
     /**
      * Execute the console command.
@@ -33,7 +33,7 @@ class MediaClear extends Command
 
         Media::chunk(500, function (Collection $media) use ($check) {
             $media->each(function (Media $media) use ($check) {
-                if ($media->model_id && !$media->model) {
+                if ($media->model_id && $media->abandoned) {
                     return $media->delete();
                 }
                 if ($check && !$media->file->exists()) {

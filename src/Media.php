@@ -9,16 +9,17 @@ use Illuminate\Support\Collection;
 use URL;
 
 /**
- * @property-read Model $model
- * @property-read File  $file
- * @property string     $disk
- * @property string     $target_disk
- * @property string     $path
- * @property integer    $size
- * @property string     $mime
- * @property array      $conversions
- * @property string     $model_type
- * @property integer    $model_id
+ * @property-read Model   $model
+ * @property-read File    $file
+ * @property string       $disk
+ * @property string       $target_disk
+ * @property string       $path
+ * @property integer      $size
+ * @property string       $mime
+ * @property array        $conversions
+ * @property string       $model_type
+ * @property integer      $model_id
+ * @property-read boolean $abandoned
  */
 class Media extends Model
 {
@@ -310,5 +311,23 @@ class Media extends Model
         } else {
             return null;
         }
+    }
+
+    public function getAbandonedAttribute()
+    {
+        if (!$this->model_id) {
+            return true;
+        }
+
+        if ($this->relationLoaded('model')) {
+            return false;
+        }
+
+        $query = $this->model();
+        if (method_exists($query, 'withTrashed')) {
+            $query = $query->withTrashed();
+        }
+
+        return !$query->count();
     }
 }
