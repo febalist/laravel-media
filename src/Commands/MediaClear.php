@@ -13,14 +13,14 @@ class MediaClear extends Command
      *
      * @var string
      */
-    protected $signature = 'media:clear {--check}';
+    protected $signature = 'media:clear {--check : Delete models without files}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Delete media with fully deleted models or files';
+    protected $description = 'Delete media with fully deleted models';
 
     /**
      * Execute the console command.

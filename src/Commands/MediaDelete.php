@@ -14,7 +14,7 @@ class MediaDelete extends Command
      *
      * @var string
      */
-    protected $signature = 'media:delete {disk?}';
+    protected $signature = 'media:delete {disk? : Only on this disk}';
 
     /**
      * The console command description.

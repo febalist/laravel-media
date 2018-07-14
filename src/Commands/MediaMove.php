@@ -14,7 +14,7 @@ class MediaMove extends Command
      *
      * @var string
      */
-    protected $signature = 'media:move {disk?} {--force}';
+    protected $signature = 'media:move {disk? : Target disk} {--force : Move files that are already in disk}';
 
     /**
      * The console command description.

@@ -12,14 +12,14 @@ class MediaConvert extends Command
      *
      * @var string
      */
-    protected $signature = 'media:convert';
+    protected $signature = 'media:convert {--sync}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Convert media';
+    protected $description = 'Reconvert all media';
 
     /**
      * Execute the console command.
@@ -28,8 +28,10 @@ class MediaConvert extends Command
      */
     public function handle()
     {
-        Media::each(function (Media $media) {
-            $media->convert();
+        $sync = $this->option('sync');
+
+        Media::each(function (Media $media) use ($sync) {
+            $media->convert($sync);
         });
     }
 }
