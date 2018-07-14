@@ -35,72 +35,66 @@ trait HasMedia
     }
 
     /** @return Media */
-    public function addMedia(Media $media, $collection = null)
+    public function addMedia(Media $media)
     {
-        $media->associate($this, $collection);
+        $media->associate($this);
 
         return $media;
     }
 
     /** @return Media */
-    public function addMediaFromFile($file, $collection = null, $disk = null, $delete = false)
+    public function addMediaFromFile($file, $disk = null, $delete = false)
     {
         $media = Media::fromFile($file, $disk, $delete);
-        $this->addMedia($media, $collection);
+        $this->addMedia($media);
 
         return $media;
     }
 
     /** @return Collection|Media[] */
-    public function addMediaFromRequest($keys = null, $collection = null, $disk = null)
+    public function addMediaFromRequest($keys = null, $disk = null)
     {
         $media = Media::fromRequest($keys, $disk);
-        $media->each(function (Media $media) use ($collection) {
-            $this->addMedia($media, $collection);
+        $media->each(function (Media $media) {
+            $this->addMedia($media);
         });
 
         return $media;
     }
 
     /** @return Media */
-    public function addMediaFromUrl($url, $collection = null, $disk = null)
+    public function addMediaFromUrl($url, $disk = null)
     {
         $media = Media::fromUrl($url, $disk);
-        $this->addMedia($media, $collection);
+        $this->addMedia($media);
 
         return $media;
     }
 
     /** @return Collection|Media[] */
-    public function getAllMedia()
+    public function getMedia()
     {
         return $this->media;
     }
 
     /** @return Collection|Media[] */
-    public function getMedia($collection = null)
+    public function getMediaImages()
     {
-        return $this->getAllMedia()->where('collection', $collection);
-    }
-
-    /** @return Collection|Media[] */
-    public function getMediaImages($collection = null)
-    {
-        return $this->getMedia($collection)->filter(function (Media $media) {
+        return $this->getMedia()->filter(function (Media $media) {
             return $media->file->type == 'image';
         });
     }
 
     /** @return Media|null */
-    public function getFirstMedia($collection = null)
+    public function getFirstMedia()
     {
-        return $this->getMedia($collection)->first();
+        return $this->getMedia()->first();
     }
 
     /** @return string|null */
-    public function getFirstMediaUrl($collection = null, $expiration = null)
+    public function getFirstMediaUrl($expiration = null)
     {
-        if ($media = $this->getFirstMedia($collection)) {
+        if ($media = $this->getFirstMedia()) {
             return $media->file->url($expiration);
         } else {
             return null;
@@ -108,9 +102,9 @@ trait HasMedia
     }
 
     /** @return string|null */
-    public function getFirstMediaView($collection = null, $expiration = null)
+    public function getFirstMediaView($expiration = null)
     {
-        if ($media = $this->getFirstMedia($collection)) {
+        if ($media = $this->getFirstMedia()) {
             return $media->file->view($expiration);
         } else {
             return null;
@@ -118,15 +112,15 @@ trait HasMedia
     }
 
     /** @deprecated */
-    public function getFirstMediaPreview($collection = null, $embedded = false)
+    public function getFirstMediaPreview($embedded = false)
     {
-        return $this->getFirstMediaView($collection);
+        return $this->getFirstMediaView();
     }
 
     /** @return Conversion|null */
-    public function getFirstMediaConversion($collection = null, $name)
+    public function getFirstMediaConversion($name)
     {
-        if ($media = $this->getFirstMedia($collection)) {
+        if ($media = $this->getFirstMedia()) {
             return $media->conversion($name);
         } else {
             return null;
@@ -134,9 +128,9 @@ trait HasMedia
     }
 
     /** @return string|null */
-    public function getFirstMediaConversionUrl($collection = null, $name, $expiration = null)
+    public function getFirstMediaConversionUrl($name, $expiration = null)
     {
-        if ($media = $this->getFirstMedia($collection)) {
+        if ($media = $this->getFirstMedia()) {
             return $media->conversionUrl($name, $expiration);
         } else {
             return null;
@@ -144,9 +138,9 @@ trait HasMedia
     }
 
     /** @deprecated */
-    public function getFirstMediaConversionPreview($collection = null, $name, $embedded = false)
+    public function getFirstMediaConversionPreview($name, $embedded = false)
     {
-        if ($media = $this->getFirstMedia($collection)) {
+        if ($media = $this->getFirstMedia()) {
             return $media->conversionPreview($name, $embedded);
         } else {
             return null;
@@ -154,33 +148,33 @@ trait HasMedia
     }
 
     /** @return string|null */
-    public function getFirstMediaConversionView($collection = null, $name, $embedded = false)
+    public function getFirstMediaConversionView($name, $embedded = false)
     {
-        if ($media = $this->getFirstMedia($collection)) {
+        if ($media = $this->getFirstMedia()) {
             return $media->conversionView($name, $embedded);
         } else {
             return null;
         }
     }
 
-    public function mediaConvert($collection = null, $force = false)
+    public function mediaConvert($force = false)
     {
-        $this->getMedia($collection)->each(function (Media $media) use ($force) {
+        $this->getMedia()->each(function (Media $media) use ($force) {
             $media->convert($force);
         });
     }
 
     /** @return string|null */
-    public function getMediaGalleryUrl($collection = null, $conversion = null)
+    public function getMediaGalleryUrl($conversion = null)
     {
-        $media = $this->getMedia($collection);
+        $media = $this->getMedia();
         return $media->count() ? Media::galleryUrl($media, $conversion) : null;
     }
 
     /** @return string|null */
-    public function getMediaZipUrl($collection = null, $name = 'files.zip')
+    public function getMediaZipUrl($name = 'files.zip')
     {
-        $media = $this->getMedia($collection);
+        $media = $this->getMedia();
         return $media->count() ? Media::zipUrl($media, $name) : null;
     }
 }

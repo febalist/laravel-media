@@ -14,7 +14,6 @@ use URL;
  * @mixin \Eloquent
  * @property-read HasMediaModel $model
  * @property-read File          $file
- * @property string             $collection
  * @property string             $disk
  * @property string             $path
  * @property array              $conversions
@@ -142,10 +141,9 @@ class Media extends Model
         return $this->morphTo();
     }
 
-    public function associate(Eloquent $model, $collection = null)
+    public function associate(Eloquent $model)
     {
         $this->model()->associate($model);
-        $this->collection = $collection;
         $this->save();
 
         $this->convert(true);
@@ -160,7 +158,7 @@ class Media extends Model
 
         $this->file->copy($path, $disk);
 
-        $clone = $this->replicate(['model_type', 'model_id', 'collection', 'conversions']);
+        $clone = $this->replicate(['model_type', 'model_id', 'conversions']);
         $clone->fill(compact('disk', 'path'))->save();
 
         return $clone;
