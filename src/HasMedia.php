@@ -24,7 +24,7 @@ trait HasMedia
         });
     }
 
-    public function mediaConverter(Media $media)
+    public function mediaConvert(Media $media)
     {
 
     }
@@ -139,13 +139,6 @@ trait HasMedia
         } else {
             return null;
         }
-    }
-
-    public function mediaConvert($force = false)
-    {
-        $this->getMedia()->each(function (Media $media) use ($force) {
-            $media->convert($force);
-        });
     }
 
     /** @return string|null */

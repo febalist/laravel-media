@@ -213,8 +213,8 @@ class Media extends Model
             if ($force) {
                 $this->deleteConversions();
             }
-            if (method_exists($this->model, 'mediaConverter')) {
-                $this->model->mediaConverter($this);
+            if (method_exists($this->model, 'mediaConvert')) {
+                $this->model->mediaConvert($this);
             }
         } else {
             if ($this->file->convertible) {

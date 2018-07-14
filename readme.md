@@ -1,6 +1,7 @@
 ```bash
 composer require febalist/laravel-media
 php artisan vendor:publish --provider Febalist\Laravel\Media\MediaServiceProvider
+php artisan migrate
 ``` 
 
 ```dotenv
@@ -12,7 +13,7 @@ MEDIA_QUEUE=media
 ```php
     use HasMedia;
 
-    public function mediaConverter(Media $media)
+    public function mediaConvert(Media $media)
     {
         $media->optimize();
 
