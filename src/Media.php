@@ -9,17 +9,23 @@ use Illuminate\Support\Collection;
 use URL;
 
 /**
- * @property-read Model   $model
- * @property-read File    $file
- * @property string       $disk
- * @property string       $target_disk
- * @property string       $path
- * @property integer      $size
- * @property string       $mime
- * @property array        $conversions
- * @property string       $model_type
- * @property integer      $model_id
- * @property-read boolean $abandoned
+ * @property-read Model    $model
+ * @property-read File     $file
+ * @property string        $disk
+ * @property string        $target_disk
+ * @property string        $path
+ * @property integer       $size
+ * @property string        $mime
+ * @property array         $conversions
+ * @property string        $model_type
+ * @property integer       $model_id
+ * @property-read boolean  $abandoned
+ * @property-read string   $name
+ * @property-read string   $extension
+ * @property-read string   $icon
+ * @property-read string   $type
+ * @property-read boolean  $local
+ * @property-read resource $stream
  */
 class Media extends Model
 {
@@ -171,11 +177,6 @@ class Media extends Model
         return $this;
     }
 
-    public function cloud()
-    {
-        return $this->move('cloud');
-    }
-
     public function getFileAttribute()
     {
         return new File($this->path, $this->disk);
@@ -250,20 +251,19 @@ class Media extends Model
         return $conversions;
     }
 
-    /** @return Conversion|null */
+    /** @return Conversion|self */
     public function getConversion($name, $check = false)
     {
-        if (in_array($name, $this->conversions)) {
-            return new Conversion($name, $this, $this->file->neighbor([$name, $this->file->name()], $check));
+        if ($this->hasConversion($name)) {
+            return new Conversion($name, $this, $this->file->neighbor([$name, $this->file->name()]));
         }
 
-        return null;
+        return $this;
     }
 
-    /** @return Conversion|self */
-    public function getConversionOrOriginal($name, $check = false)
+    public function hasConversion($name)
     {
-        return $this->getConversion($name, $check) ?: $this;
+        return in_array($name, $this->conversions);
     }
 
     public function getAbandonedAttribute()
@@ -282,5 +282,35 @@ class Media extends Model
         }
 
         return !$query->count();
+    }
+
+    public function getNameAttribute()
+    {
+        return $this->file->name();
+    }
+
+    public function getExtensionAttribute()
+    {
+        return $this->file->extension();
+    }
+
+    public function getIconAttribute()
+    {
+        return $this->file->icon();
+    }
+
+    public function getTypeAttribute()
+    {
+        return $this->file->type();
+    }
+
+    public function getStreamAttribute()
+    {
+        return $this->file->stream();
+    }
+
+    public function getLocalAttribute()
+    {
+        return $this->file->local();
     }
 }
