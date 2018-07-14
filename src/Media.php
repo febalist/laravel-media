@@ -186,7 +186,8 @@ class Media extends Model
     public function rename($name)
     {
         $path = $this->file->rename($name)->path;
-        $this->update(compact('path'));
+        $mime = $this->file->mime();
+        $this->update(compact('path', 'mime'));
     }
 
     public function getFileAttribute()
