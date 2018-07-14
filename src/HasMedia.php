@@ -149,10 +149,10 @@ trait HasMedia
     }
 
     /** @return string|null */
-    public function getMediaGalleryUrl($conversion = null)
+    public function getMediaGalleryUrl()
     {
         $media = $this->getMedia();
-        return $media->count() ? Media::galleryUrl($media, $conversion) : null;
+        return $media->count() ? Media::galleryUrl($media) : null;
     }
 
     /** @return string|null */

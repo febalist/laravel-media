@@ -30,7 +30,7 @@ class Media extends Model
     ];
 
     /** @return string */
-    public static function galleryUrl($media, $conversion = null)
+    public static function galleryUrl($media)
     {
         if (!$media instanceof Collection) {
             $media = collect(array_wrap($media));
@@ -38,12 +38,7 @@ class Media extends Model
 
         $ids = $media->pluck('id')->implode(',');
 
-        $parameters = [$ids];
-        if ($conversion) {
-            $parameters['conversion'] = $conversion;
-        }
-
-        return URL::signedRoute('media.gallery', $parameters);
+        return URL::signedRoute('media.gallery', [$ids]);
     }
 
     public static function zip($media, $name)

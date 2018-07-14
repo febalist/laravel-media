@@ -16,14 +16,7 @@ class MediaController extends Controller
     {
         $media = Media::findMany(explode(',', $ids));
 
-        $conversion = request('conversion');
-
-        $files = $media->map(function (Media $media) use ($conversion) {
-            $conversion = $media->conversion($conversion);
-            if ($conversion) {
-                return $conversion->file;
-            }
-        })->filter();
+        $files = $media->pluck('file');
 
         $url = File::galleryUrl($files);
 
