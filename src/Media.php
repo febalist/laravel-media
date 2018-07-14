@@ -217,8 +217,10 @@ class Media extends Model
                     $result->file->move([$this->file->directory, $result->name, $this->file->name], $this->disk);
                 }
 
-                $conversions = list_cleanup($conversions);
-                $this->update(compact('conversions'));
+                $this->update([
+                    'size' => $this->file->size,
+                    'conversions' => list_cleanup($conversions),
+                ]);
             }
 
             if ($this->target_disk && $this->disk != $this->target_disk) {
