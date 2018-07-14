@@ -81,7 +81,7 @@ trait HasMedia
     public function getMediaImages()
     {
         return $this->getMedia()->filter(function (Media $media) {
-            return $media->file->type == 'image';
+            return $media->file->type() == 'image';
         });
     }
 

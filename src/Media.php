@@ -81,8 +81,8 @@ class Media extends Model
 
         $file = File::put($file, $path, $disk, $delete);
 
-        $size = $file->size;
-        $mime = $file->mime;
+        $size = $file->size();
+        $mime = $file->mime();
 
         return static::create(compact('size', 'mime', 'disk', 'target_disk', 'path'));
     }
@@ -141,11 +141,11 @@ class Media extends Model
     {
         $target_disk = File::diskName($disk ?: static::defaultDisk());
         $disk = $target_disk;
-        $path = static::generatePath($this->file->name);
+        $path = static::generatePath($this->file->name());
 
         $this->file->copy($path, $disk);
         $this->getConversions()->each(function (Conversion $conversion) use ($disk, $path) {
-            $conversion->file->copy([File::pathDirectory($path), $conversion->name, $this->file->name], $disk);
+            $conversion->file->copy([File::pathDirectory($path), $conversion->name, $this->file->name()], $disk);
         });
 
         $clone = $this->replicate(['model_type', 'model_id']);
@@ -158,11 +158,11 @@ class Media extends Model
     {
         $target_disk = File::diskName($disk ?: static::defaultDisk());
         $disk = $target_disk;
-        $path = static::generatePath($this->file->name);
+        $path = static::generatePath($this->file->name());
 
         $this->file->move($path, $disk);
         $this->getConversions()->each(function (Conversion $conversion) use ($disk, $path) {
-            $conversion->file->move([File::pathDirectory($path), $conversion->name, $this->file->name], $disk);
+            $conversion->file->move([File::pathDirectory($path), $conversion->name, $this->file->name()], $disk);
         });
         $this->deleteFiles();
 
@@ -183,14 +183,14 @@ class Media extends Model
 
     public function deleteFiles($directory = null)
     {
-        return $this->file->storage()->deleteDir($this->file->directory);
+        return $this->file->storage()->deleteDir($this->file->directory());
     }
 
     public function deleteConversions()
     {
-        $directories = $this->file->storage->directories($this->file->directory);
+        $directories = $this->file->storage()->directories($this->file->directory());
         foreach ($directories as $directory) {
-            $this->file->storage->deleteDirectory($directory);
+            $this->file->storage()->deleteDirectory($directory);
         }
         $this->update(['conversions' => []]);
     }
@@ -214,11 +214,11 @@ class Media extends Model
 
                 foreach ($converter->results() as $result) {
                     $conversions[] = $result->name;
-                    $result->file->move([$this->file->directory, $result->name, $this->file->name], $this->disk);
+                    $result->file->move([$this->file->directory(), $result->name, $this->file->name()], $this->disk);
                 }
 
                 $this->update([
-                    'size' => $this->file->size,
+                    'size' => $this->file->size(),
                     'conversions' => list_cleanup($conversions),
                 ]);
             }
@@ -227,7 +227,7 @@ class Media extends Model
                 $this->move($this->target_disk);
             }
         } else {
-            if ($this->file->convertible) {
+            if ($this->file->convertible()) {
                 if ($queue = config('media.queue')) {
                     MediaConvert::dispatch($this)->onQueue($queue);
                 } else {
