@@ -187,6 +187,15 @@ class Media extends Model
         return $this->file->storage()->deleteDir($this->file->directory);
     }
 
+    public function deleteConversions()
+    {
+        $directories = $this->file->storage->directories($this->file->directory);
+        foreach ($directories as $directory) {
+            $this->file->storage->deleteDirectory($directory);
+        }
+        $this->update(['conversions' => []]);
+    }
+
     public function getConversionsAttribute($value)
     {
         return list_cleanup(json_decode($value) ?: []);
@@ -197,11 +206,7 @@ class Media extends Model
         if ($run) {
             Media::setForceConvert($force);
             if ($force) {
-                $directories = $this->file->storage->directories($this->file->directory);
-                foreach ($directories as $directory) {
-                    $this->file->storage->deleteDirectory($directory);
-                }
-                $this->update(['conversions' => []]);
+                $this->deleteConversions();
             }
             if (method_exists($this->model, 'mediaConverter')) {
                 $this->model->mediaConverter($this);

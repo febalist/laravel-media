@@ -4,7 +4,7 @@ php artisan vendor:publish --provider Febalist\Laravel\Media\MediaServiceProvide
 ``` 
 
 ```dotenv
-MEDIA_DISK=public
+MEDIA_DISK=cloud
 MEDIA_PATH=media
 MEDIA_QUEUE=media
 ```
@@ -16,10 +16,8 @@ MEDIA_QUEUE=media
     {
         $media->optimize();
 
-        if ($media->collection == 'photo') {
-            $media->converter('thumb', function (Image $image) {
-                return $image->fit_crop(800, 450);
-            });
-        }
+        $media->converter('thumb', function (Image $image) {
+            return $image->fit_crop(800, 450);
+        });
     }
 ```
