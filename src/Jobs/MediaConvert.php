@@ -17,17 +17,15 @@ class MediaConvert implements ShouldQueue
     }
 
     protected $media;
-    protected $force;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(Media $media, $force = false)
+    public function __construct(Media $media)
     {
         $this->media = $media;
-        $this->force = $force;
     }
 
     /**
@@ -38,7 +36,7 @@ class MediaConvert implements ShouldQueue
     public function handle()
     {
         if ($this->media) {
-            $this->media->convert($this->force, true);
+            $this->media->convert(true);
         }
     }
 

@@ -13,12 +13,9 @@ MEDIA_QUEUE=media
 ```php
     use HasMedia;
 
-    public function mediaConvert(Media $media)
+    public function mediaConvert(MediaConverter $converter)
     {
-        $media->optimize();
-
-        $media->converter('thumb', function (Image $image) {
-            return $image->fit_crop(800, 450);
-        });
+        $converter->optimize();
+        $converter->conversion('thumb')->fit_crop(800, 450);
     }
 ```

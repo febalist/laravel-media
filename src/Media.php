@@ -23,8 +23,6 @@ use URL;
  */
 class Media extends Model
 {
-    protected static $force_convert = false;
-
     protected $guarded = [];
     protected $hidden = [];
     protected $casts = [
@@ -118,11 +116,6 @@ class Media extends Model
         return static::fromFile($url, $disk, $name);
     }
 
-    public static function setForceConvert($enabled = true)
-    {
-        static::$force_convert = $enabled;
-    }
-
     protected static function preliminaryDisk()
     {
         return config('media.preliminary_disk') ?: 'public';
@@ -148,7 +141,7 @@ class Media extends Model
         $this->model()->associate($model);
         $this->save();
 
-        $this->convert(true);
+        $this->convert();
 
         return $this;
     }
@@ -216,16 +209,27 @@ class Media extends Model
         return list_cleanup(json_decode($value) ?: []);
     }
 
-    public function convert($force = false, $run = false)
+    public function convert($run = false)
     {
         if ($run) {
-            Media::setForceConvert($force);
-            if ($force) {
-                $this->deleteConversions();
-            }
+            $this->deleteConversions();
+
             if (method_exists($this->model, 'mediaConvert')) {
-                $this->model->mediaConvert($this);
+                $conversions = $this->conversions;
+
+                $converter = new MediaConverter($this->file);
+
+                $this->model->mediaConvert($converter);
+
+                foreach ($converter->results() as $result) {
+                    $conversions[] = $result->name;
+                    $result->file->move([$this->file->directory, $result->name, $this->file->name], $this->disk);
+                }
+
+                $conversions = list_cleanup($conversions);
+                $this->update(compact('conversions'));
             }
+
             if ($this->target_disk && $this->disk != $this->target_disk) {
                 $this->move($this->target_disk);
             }
@@ -233,43 +237,14 @@ class Media extends Model
             if ($this->file->convertible) {
                 $queue = config('media.queue');
                 if ($queue) {
-                    MediaConvert::dispatch($this, $force)->onQueue($queue);
+                    MediaConvert::dispatch($this)->onQueue($queue);
                 } else {
-                    MediaConvert::dispatchNow($this, $force);
+                    MediaConvert::dispatchNow($this);
                 }
             }
         }
 
         return $this;
-    }
-
-    /** @return static */
-    public function converter($name, $callback)
-    {
-        if ($this->file->convertible) {
-            if (static::$force_convert || $name && !in_array($name, $this->conversions)) {
-                $file = $this->file->copyTemp();
-
-                $image = $file->image()->optimize();
-                if (is_callable($callback)) {
-                    $image = $callback($image);
-                }
-                $image->save();
-
-                $file->move([$this->file->directory, $name, $this->file->name], $this->disk);
-
-                $conversions = list_cleanup(array_merge($this->conversions, [$name]));
-                $this->update(compact('conversions'));
-            }
-        }
-
-        return $this;
-    }
-
-    /** @return static */
-    public function optimize()
-    {
-        return $this->converter(null, null);
     }
 
     /** @return Collection|Conversion[] */

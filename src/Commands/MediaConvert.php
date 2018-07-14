@@ -4,7 +4,6 @@ namespace Febalist\Laravel\Media\Commands;
 
 use Febalist\Laravel\Media\Media;
 use Illuminate\Console\Command;
-use Illuminate\Support\Collection;
 
 class MediaConvert extends Command
 {
@@ -13,7 +12,7 @@ class MediaConvert extends Command
      *
      * @var string
      */
-    protected $signature = 'media:convert {--force}';
+    protected $signature = 'media:convert';
 
     /**
      * The console command description.
@@ -29,12 +28,8 @@ class MediaConvert extends Command
      */
     public function handle()
     {
-        $force = $this->option('force');
-
-        Media::chunk(500, function (Collection $media) use ($force) {
-            $media->each(function (Media $media) use ($force) {
-                $media->convert($force);
-            });
+        Media::each(function (Media $media) {
+            $media->convert();
         });
     }
 }

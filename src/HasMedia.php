@@ -24,7 +24,7 @@ trait HasMedia
         });
     }
 
-    public function mediaConvert(Media $media)
+    public function mediaConvert(MediaConverter $converter)
     {
 
     }
