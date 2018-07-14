@@ -16,6 +16,8 @@ use URL;
  * @property-read File          $file
  * @property string             $disk
  * @property string             $path
+ * @property integer            $size
+ * @property string             $mime
  * @property array              $conversions
  * @property string             $model_type
  * @property integer            $model_id
