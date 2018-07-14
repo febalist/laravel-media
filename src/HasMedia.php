@@ -43,18 +43,18 @@ trait HasMedia
     }
 
     /** @return Media */
-    public function addMediaFromFile($file, $disk = null, $delete = false)
+    public function addMediaFromFile($file, $disk = null, $name = null, $delete = false)
     {
-        $media = Media::fromFile($file, $disk, $delete);
+        $media = Media::fromFile($file, $disk, $name, $delete);
         $this->addMedia($media);
 
         return $media;
     }
 
     /** @return Collection|Media[] */
-    public function addMediaFromRequest($keys = null, $disk = null)
+    public function addMediaFromRequest($keys = null, $disk = null, $name = null)
     {
-        $media = Media::fromRequest($keys, $disk);
+        $media = Media::fromRequest($keys, $disk, $name);
         $media->each(function (Media $media) {
             $this->addMedia($media);
         });
@@ -63,9 +63,9 @@ trait HasMedia
     }
 
     /** @return Media */
-    public function addMediaFromUrl($url, $disk = null)
+    public function addMediaFromUrl($url, $disk = null, $name = null)
     {
-        $media = Media::fromUrl($url, $disk);
+        $media = Media::fromUrl($url, $disk, $name);
         $this->addMedia($media);
 
         return $media;

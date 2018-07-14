@@ -78,9 +78,9 @@ class Media extends Model
     }
 
     /** @return static */
-    public static function fromFile($file, $disk = null, $delete = false)
+    public static function fromFile($file, $disk = null, $name = null, $delete = false)
     {
-        $name = File::fileName($file, true);
+        $name = File::slugName($name) ?: File::fileName($file, true);
         $path = static::generatePath($name);
         $disk = File::diskName($disk ?: static::defaultDisk());
 
@@ -92,7 +92,7 @@ class Media extends Model
         return static::create(compact('size', 'mime', 'disk', 'path'));
     }
 
-    public static function fromRequest($keys = null, $disk = null)
+    public static function fromRequest($keys = null, $disk = null, $name = null)
     {
         if (!$keys) {
             $keys = array_keys(request()->allFiles());
@@ -108,7 +108,7 @@ class Media extends Model
                 $files = [$files];
             }
             foreach ($files as $file) {
-                $media = static::fromFile($file, $disk, true);
+                $media = static::fromFile($file, $disk, $name, true);
                 $result->push($media);
             }
         }
@@ -116,9 +116,9 @@ class Media extends Model
         return $result;
     }
 
-    public static function fromUrl($url, $disk = null)
+    public static function fromUrl($url, $disk = null, $name = null)
     {
-        return static::fromFile($url, $disk);
+        return static::fromFile($url, $disk, $name);
     }
 
     public static function setForceConvert($enabled = true)
@@ -181,13 +181,6 @@ class Media extends Model
     public function cloud()
     {
         return $this->move('cloud');
-    }
-
-    public function rename($name)
-    {
-        $path = $this->file->rename($name)->path;
-        $mime = $this->file->mime();
-        $this->update(compact('path', 'mime'));
     }
 
     public function getFileAttribute()
