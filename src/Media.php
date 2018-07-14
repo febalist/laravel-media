@@ -151,8 +151,11 @@ class Media extends Model
         $path = static::generatePath($this->file->name);
 
         $this->file->copy($path, $disk);
+        $this->getConversions()->each(function (Conversion $conversion) use ($disk, $path) {
+            $conversion->file->copy([File::pathDirectory($path), $conversion->name, $this->file->name], $disk);
+        });
 
-        $clone = $this->replicate(['model_type', 'model_id', 'conversions']);
+        $clone = $this->replicate(['model_type', 'model_id']);
         $clone->fill(compact('disk', 'path'))->save();
 
         return $clone;
@@ -164,10 +167,12 @@ class Media extends Model
         $path = static::generatePath($this->file->name);
 
         $this->file->move($path, $disk);
+        $this->getConversions()->each(function (Conversion $conversion) use ($disk, $path) {
+            $conversion->file->move([File::pathDirectory($path), $conversion->name, $this->file->name], $disk);
+        });
         $this->deleteFiles();
 
-        $conversions = [];
-        $this->fill(compact('disk', 'path', 'conversions'))->save();
+        $this->fill(compact('disk', 'path'))->save();
 
         return $this;
     }
