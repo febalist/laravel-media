@@ -87,17 +87,21 @@ trait HasMedia
     }
 
     /** @return Collection|Media[] */
-    public function getMedia()
+    public function getMedia($type = null)
     {
-        return $this->media;
+        return $this->media->when($type, function (Collection $media, $type) {
+            return $media->where('type', $type);
+        });
     }
 
-    /** @return Collection|Media[] */
-    public function getMediaImages()
+    /** @return integer */
+    public function hasMedia($type = null)
     {
-        return $this->getMedia()->filter(function (Media $media) {
-            return $media->file->type() == 'image';
-        });
+        if ($type) {
+            return $this->getMedia($type)->count();
+        }
+
+        return $this->relationLoaded('media') ? $this->media->count() : $this->media()->count();
     }
 
     /** @return Media|null */
