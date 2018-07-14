@@ -4,23 +4,20 @@ namespace Febalist\Laravel\Media;
 
 use Febalist\Laravel\File\File;
 use Febalist\Laravel\Media\Jobs\MediaConvert;
-use Febalist\Laravel\Media\Model as HasMediaModel;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Support\Collection;
 use URL;
 
 /**
- * @mixin \Eloquent
- * @property-read HasMediaModel $model
- * @property-read File          $file
- * @property string             $disk
- * @property string             $path
- * @property integer            $size
- * @property string             $mime
- * @property array              $conversions
- * @property string             $model_type
- * @property integer            $model_id
+ * @property-read Model $model
+ * @property-read File  $file
+ * @property string     $disk
+ * @property string     $path
+ * @property integer    $size
+ * @property string     $mime
+ * @property array      $conversions
+ * @property string     $model_type
+ * @property integer    $model_id
  */
 class Media extends Model
 {

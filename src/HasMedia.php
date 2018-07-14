@@ -2,7 +2,7 @@
 
 namespace Febalist\Laravel\Media;
 
-use Illuminate\Database\Eloquent\Model as Eloquent;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 
@@ -14,7 +14,7 @@ trait HasMedia
 {
     public static function bootHasMedia()
     {
-        static::deleted(function (Eloquent $model) {
+        static::deleted(function (Model $model) {
             if (in_array(SoftDeletes::class, class_uses_recursive($model)) && !$model->forceDeleting) {
                 return;
             }
