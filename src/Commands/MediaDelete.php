@@ -21,7 +21,7 @@ class MediaDelete extends Command
      *
      * @var string
      */
-    protected $description = 'Delete media';
+    protected $description = 'Delete all media';
 
     /**
      * Execute the console command.

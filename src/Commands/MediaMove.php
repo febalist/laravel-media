@@ -21,7 +21,7 @@ class MediaMove extends Command
      *
      * @var string
      */
-    protected $description = 'Move media';
+    protected $description = 'Move media to new locations';
 
     /**
      * Execute the console command.
