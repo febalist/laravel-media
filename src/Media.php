@@ -298,10 +298,4 @@ class Media extends Model
             return null;
         }
     }
-
-    /** @deprecated */
-    public function conversionPreview($name, $embedded = false)
-    {
-        return $this->conversionView($name);
-    }
 }

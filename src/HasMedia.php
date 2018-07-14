@@ -111,12 +111,6 @@ trait HasMedia
         }
     }
 
-    /** @deprecated */
-    public function getFirstMediaPreview($embedded = false)
-    {
-        return $this->getFirstMediaView();
-    }
-
     /** @return Conversion|null */
     public function getFirstMediaConversion($name)
     {
@@ -132,16 +126,6 @@ trait HasMedia
     {
         if ($media = $this->getFirstMedia()) {
             return $media->conversionUrl($name, $expiration);
-        } else {
-            return null;
-        }
-    }
-
-    /** @deprecated */
-    public function getFirstMediaConversionPreview($name, $embedded = false)
-    {
-        if ($media = $this->getFirstMedia()) {
-            return $media->conversionPreview($name, $embedded);
         } else {
             return null;
         }
