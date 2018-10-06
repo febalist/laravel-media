@@ -36,10 +36,9 @@ class MediaClear extends Command
 
         $query->each(function (Media $media) use ($check, $bar) {
             if ($media->model_id && $media->abandoned) {
-                return $media->delete();
-            }
-            if ($check && !$media->file->exists()) {
-                return $media->delete();
+                $media->delete();
+            } elseif ($check && !$media->file->exists()) {
+                $media->delete();
             }
 
             $bar->advance();
