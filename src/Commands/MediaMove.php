@@ -14,7 +14,7 @@ class MediaMove extends Command
      *
      * @var string
      */
-    protected $signature = 'media:move {disk? : Target disk} {--force : Move files that are already in disk}';
+    protected $signature = 'media:move {disk? : Target disk} {--force : Move files that are already in disk too}';
 
     /**
      * The console command description.
@@ -33,13 +33,21 @@ class MediaMove extends Command
         $disk = $this->argument('disk');
         $force = $this->option('force');
 
-        Media::when(!$force, function (Builder $query) use ($disk) {
+        $query = Media::when(!$force, function (Builder $query) use ($disk) {
             return $query->where('disk', '!=', $disk);
-        })->chunk(500, function (Collection $media) use ($disk) {
-            $media->each(function (Media $media) use ($disk) {
+        });
+
+        $bar = $this->output->createProgressBar($query->count());
+
+        $query->chunk(500, function (Collection $media) use ($disk, $bar) {
+            $media->each(function (Media $media) use ($disk, $bar) {
                 $media->move($disk);
                 $media->convert();
+
+                $bar->advance();
             });
         });
+
+        $bar->finish();
     }
 }
