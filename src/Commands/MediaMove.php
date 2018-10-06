@@ -13,7 +13,7 @@ class MediaMove extends Command
      *
      * @var string
      */
-    protected $signature = 'media:move {disk? : Target disk} {--force : Move files that are already in disk too} {--sync : Sync convert}';
+    protected $signature = 'media:move {disk? : Target disk} {--force : Move files that are already in disk too}';
 
     /**
      * The console command description.
@@ -31,7 +31,6 @@ class MediaMove extends Command
     {
         $disk = $this->argument('disk');
         $force = $this->option('force');
-        $sync = $this->option('sync');
 
         $query = Media::when(!$force, function (Builder $query) use ($disk) {
             return $query->where('disk', '!=', $disk);
@@ -39,9 +38,8 @@ class MediaMove extends Command
 
         $bar = $this->output->createProgressBar($query->count());
 
-        $query->each(function (Media $media) use ($disk, $sync, $bar) {
+        $query->each(function (Media $media) use ($disk, $bar) {
             $media->move($disk);
-            $media->convert($sync);
 
             $bar->advance();
         }, 500);
