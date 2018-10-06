@@ -5,7 +5,6 @@ namespace Febalist\Laravel\Media\Commands;
 use Febalist\Laravel\Media\Media;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 
 class MediaMove extends Command
 {
@@ -14,7 +13,7 @@ class MediaMove extends Command
      *
      * @var string
      */
-    protected $signature = 'media:move {disk? : Target disk} {--force : Move files that are already in disk too}';
+    protected $signature = 'media:move {disk? : Target disk} {--force : Move files that are already in disk too} {--sync : Sync convert}';
 
     /**
      * The console command description.
@@ -32,6 +31,7 @@ class MediaMove extends Command
     {
         $disk = $this->argument('disk');
         $force = $this->option('force');
+        $sync = $this->option('sync');
 
         $query = Media::when(!$force, function (Builder $query) use ($disk) {
             return $query->where('disk', '!=', $disk);
@@ -39,14 +39,12 @@ class MediaMove extends Command
 
         $bar = $this->output->createProgressBar($query->count());
 
-        $query->chunk(500, function (Collection $media) use ($disk, $bar) {
-            $media->each(function (Media $media) use ($disk, $bar) {
-                $media->move($disk);
-                $media->convert();
+        $query->each(function (Media $media) use ($disk, $sync, $bar) {
+            $media->move($disk);
+            $media->convert($sync);
 
-                $bar->advance();
-            });
-        });
+            $bar->advance();
+        }, 500);
 
         $bar->finish();
     }

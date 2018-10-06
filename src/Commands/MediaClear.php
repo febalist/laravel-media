@@ -4,7 +4,6 @@ namespace Febalist\Laravel\Media\Commands;
 
 use Febalist\Laravel\Media\Media;
 use Illuminate\Console\Command;
-use Illuminate\Support\Collection;
 
 class MediaClear extends Command
 {
@@ -31,15 +30,21 @@ class MediaClear extends Command
     {
         $check = $this->option('check');
 
-        Media::chunk(500, function (Collection $media) use ($check) {
-            $media->each(function (Media $media) use ($check) {
-                if ($media->model_id && $media->abandoned) {
-                    return $media->delete();
-                }
-                if ($check && !$media->file->exists()) {
-                    return $media->delete();
-                }
-            });
-        });
+        $query = Media::query();
+
+        $bar = $this->output->createProgressBar($query->count());
+
+        $query->each(function (Media $media) use ($check, $bar) {
+            if ($media->model_id && $media->abandoned) {
+                return $media->delete();
+            }
+            if ($check && !$media->file->exists()) {
+                return $media->delete();
+            }
+
+            $bar->advance();
+        }, 500);
+
+        $bar->finish();
     }
 }

@@ -5,7 +5,6 @@ namespace Febalist\Laravel\Media\Commands;
 use Febalist\Laravel\Media\Media;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 
 class MediaDelete extends Command
 {
@@ -32,12 +31,18 @@ class MediaDelete extends Command
     {
         $disk = $this->argument('disk');
 
-        Media::when($disk, function (Builder $query, $disk) {
+        $query = Media::when($disk, function (Builder $query, $disk) {
             return $query->where('disk', $disk);
-        })->chunk(500, function (Collection $media) {
-            $media->each(function (Media $media) {
-                $media->delete();
-            });
         });
+
+        $bar = $this->output->createProgressBar($query->count());
+
+        $query->each(function (Media $media) use ($bar) {
+            $media->delete();
+
+            $bar->advance();
+        }, 500);
+
+        $bar->finish();
     }
 }

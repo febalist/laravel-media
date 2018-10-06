@@ -30,8 +30,16 @@ class MediaConvert extends Command
     {
         $sync = $this->option('sync');
 
-        Media::each(function (Media $media) use ($sync) {
+        $query = Media::query();
+
+        $bar = $this->output->createProgressBar($query->count());
+
+        $query->each(function (Media $media) use ($sync, $bar) {
             $media->convert($sync);
-        });
+
+            $bar->advance();
+        }, 500);
+
+        $bar->finish();
     }
 }
