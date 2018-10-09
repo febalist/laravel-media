@@ -2,7 +2,7 @@
 composer require febalist/laravel-media
 php artisan vendor:publish --provider 'Febalist\Laravel\Media\MediaServiceProvider'
 php artisan migrate
-npm install febalist-laravel-media
+npm install @febalist/laravel-media
 ``` 
 
 ```dotenv
@@ -22,7 +22,7 @@ MEDIA_QUEUE=media
 ```
 
 ```javascript
-const media = require('febalist-laravel-media');
+const media = require('@febalist/laravel-media');
 
 media.select_images().then(files => {
   media.upload(files, {
