@@ -93,6 +93,7 @@ class Media extends Model
         return static::create(compact('size', 'mime', 'disk', 'target_disk', 'path'));
     }
 
+    /** @return Collection|static[] */
     public static function fromRequest($key = null, $disk = null, $name = null)
     {
         $result = collect();

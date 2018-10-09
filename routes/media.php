@@ -8,4 +8,6 @@ Route::group([
         ->name('media.gallery');
     Route::get('zip/{ids}/{name}', 'MediaController@zip')
         ->name('media.zip');
+    Route::post('upload', 'MediaController@upload')
+        ->name('media.upload');
 });
