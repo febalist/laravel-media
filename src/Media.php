@@ -80,12 +80,10 @@ class Media extends Model
         });
 
         static::deleted(function (Media $media) {
-            $model = $media->model;
-
             $media->deleteFiles();
 
-            if ($model) {
-                $model->touch();
+            if ($media->model) {
+                $media->model->touch();
             }
         });
     }
