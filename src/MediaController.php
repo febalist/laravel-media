@@ -39,11 +39,16 @@ class MediaController extends Controller
         $media = Media::fromRequest();
 
         if (request()->has('model_type', 'model_id')) {
-            $media->each(function (Media $media) {
-                $media->model_type = request('model_type');
-                $media->model_id = request('model_id');
-                $media->save();
-            });
+            $class = request('model_type');
+            $id = request('model_id');
+            if (class_exists($class) && $id) {
+                $model = $class::find($id);
+                if ($model) {
+                    $media->each(function (Media $media) use ($model) {
+                        $media->associate($model);
+                    });
+                }
+            }
         }
 
         return $media->map(function (Media $media) {

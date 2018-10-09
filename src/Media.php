@@ -29,8 +29,6 @@ use URL;
  */
 class Media extends Model
 {
-    protected $touches = ['model'];
-
     protected $guarded = [];
     protected $hidden = [];
 
@@ -75,8 +73,20 @@ class Media extends Model
     {
         parent::boot();
 
-        static::deleted(function (Media $model) {
-            $model->deleteFiles();
+        static::saved(function (Media $media) {
+            if ($media->model) {
+                $media->model->touch();
+            }
+        });
+
+        static::deleted(function (Media $media) {
+            $model = $media->model;
+
+            $media->deleteFiles();
+
+            if ($model) {
+                $model->touch();
+            }
         });
     }
 
