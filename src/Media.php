@@ -29,8 +29,11 @@ use URL;
  */
 class Media extends Model
 {
+    protected $touches = ['model'];
+
     protected $guarded = [];
     protected $hidden = [];
+
     protected $casts = [
         'conversions' => 'array',
     ];
