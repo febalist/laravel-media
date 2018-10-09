@@ -2,6 +2,7 @@
 composer require febalist/laravel-media
 php artisan vendor:publish --provider 'Febalist\Laravel\Media\MediaServiceProvider'
 php artisan migrate
+npm install febalist-laravel-media
 ``` 
 
 ```dotenv
@@ -18,4 +19,23 @@ MEDIA_QUEUE=media
         $converter->optimize();
         $converter->conversion('thumb')->fit_crop(800, 450);
     }
+```
+
+```javascript
+const media = require('febalist-laravel-media');
+
+media.select_images().then(files => {
+  media.upload(files, {
+    model_type: 'App\\User',
+    model_id: 1,
+    onprogress: function(progress, uploaded, event) {
+      console.log({progress, uploaded, event});
+    },
+    onuploaded: function(result, error, file) {
+      console.log({result, error, file});
+    },
+  }).then(results => {
+    console.log(results);
+  });
+});
 ```

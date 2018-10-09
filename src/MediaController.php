@@ -46,6 +46,8 @@ class MediaController extends Controller
             });
         }
 
-        return $media->pluck('id');
+        return $media->map(function (Media $media) {
+            return $media->only(['id', 'size', 'mime', 'name']);
+        });
     }
 }
