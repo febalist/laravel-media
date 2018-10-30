@@ -63,7 +63,6 @@ class Media extends Model
             $media = collect(array_wrap($media));
         }
 
-        $name = File::slugName($name);
         $ids = $media->pluck('id')->implode(',');
 
         return URL::signedRoute('media.zip', [$ids, $name]);
@@ -189,7 +188,7 @@ class Media extends Model
 
     public function getFileAttribute()
     {
-        return new File($this->path, $this->disk);
+        return new File($this->path, $this->disk, $this->name);
     }
 
     public function deleteFiles($directory = null)
