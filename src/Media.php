@@ -91,7 +91,7 @@ class Media extends Model
     /** @return static */
     public static function fromFile($file, $disk = null, $name = null, $delete = false)
     {
-        $name = $name ? File::slugName($name) : File::fileName($file, true);
+        $name = $name ?: File::fileName($file);
         $path = static::generatePath($name);
         $target_disk = File::diskName($disk ?: static::defaultDisk());
         $disk = static::preliminaryDisk();
@@ -101,7 +101,7 @@ class Media extends Model
         $size = $file->size();
         $mime = $file->mime();
 
-        return static::create(compact('size', 'mime', 'disk', 'target_disk', 'path'));
+        return static::create(compact('size', 'mime', 'disk', 'target_disk', 'path', 'name'));
     }
 
     /** @return Collection|static[] */
@@ -135,7 +135,7 @@ class Media extends Model
 
     protected static function generatePath($name = '')
     {
-        return File::pathJoin(config('media.path'), str_uuid(true), $name);
+        return File::pathJoin(config('media.path'), str_uuid(true), File::slugName($name));
     }
 
     public function model()
@@ -308,7 +308,7 @@ class Media extends Model
 
     public function getNameAttribute()
     {
-        return $this->file->name();
+        return $this->attributes['name'] ?? $this->file->name();
     }
 
     public function getExtensionAttribute()
