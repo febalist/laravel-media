@@ -20,7 +20,7 @@ use URL;
  * @property string        $model_type
  * @property integer       $model_id
  * @property-read boolean  $abandoned
- * @property-read string   $name
+ * @property string        $name
  * @property-read string   $extension
  * @property-read string   $icon
  * @property-read string   $type
