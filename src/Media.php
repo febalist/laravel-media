@@ -307,7 +307,7 @@ class Media extends Model
 
     public function getNameAttribute()
     {
-        return $this->attributes['name'] ?? $this->file->name();
+        return $this->attributes['name'] ?? basename($this->path);
     }
 
     public function getExtensionAttribute()
