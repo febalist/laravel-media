@@ -2,6 +2,7 @@
 
 namespace Febalist\Laravel\Media;
 
+use Febalist\Laravel\Media\Resources\MediaResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
@@ -142,5 +143,10 @@ trait HasMedia
     {
         $media = $this->getMedia();
         return $media->count() ? Media::zipUrl($media, $name) : null;
+    }
+
+    public function getMediaResourceCollection()
+    {
+        return MediaResource::collection($this->media);
     }
 }
