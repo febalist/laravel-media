@@ -4,6 +4,7 @@ namespace Febalist\Laravel\Media;
 
 use App\Http\Controllers\Controller;
 use Febalist\Laravel\File\File;
+use Febalist\Laravel\Media\Resources\MediaResource;
 
 class MediaController extends Controller
 {
@@ -51,39 +52,43 @@ class MediaController extends Controller
             }
         }
 
-        return $media->map(function (Media $media) {
-            return $media->only(['id', 'size', 'mime', 'name']);
-        });
+        return MediaResource::collection($media)->jsonSerialize();
     }
 
-    public function download(Media $media, $conversion = null)
+    public function download(Media $media)
     {
-        $url = $media->getConversion($conversion)->file
+        $url = $this->getConversionFile($media)
             ->downloadUrl(request('expires'), request('name'));
 
         return redirect($url);
     }
 
-    public function stream(Media $media, $conversion = null)
+    public function stream(Media $media)
     {
-        $url = $media->getConversion($conversion)->file
+        $url = $this->getConversionFile($media)
             ->streamUrl(request('expires'), request('name'));
 
         return redirect($url);
     }
 
-    public function view(Media $media, $conversion = null)
+    public function view(Media $media)
     {
-        $url = $media->getConversion($conversion)->file
+        $url = $this->getConversionFile($media)
             ->view(request('expires'), request('name'));
 
         return redirect($url);
     }
 
-    public function redirect(Media $media, $conversion = null)
+    public function redirect(Media $media)
     {
-        $url = $media->directUrl($conversion, request('expires'));
+        $url = $media->directUrl(request('conversion'), request('expires'));
 
         return redirect($url);
+    }
+
+    /** @return File */
+    protected function getConversionFile(Media $media)
+    {
+        return $media->getConversion(request('conversion'))->file;
     }
 }
