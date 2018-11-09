@@ -47,7 +47,7 @@ class Media extends Model
 
         $ids = $media->pluck('id')->implode(',');
 
-        return URL::signedRoute('media.gallery', [$ids]);
+        return route_signed('media.gallery', [$ids]);
     }
 
     public static function zip($media, $name)
@@ -67,7 +67,7 @@ class Media extends Model
 
         $ids = $media->pluck('id')->implode(',');
 
-        return URL::signedRoute('media.zip', [$ids, $name]);
+        return route_signed('media.zip', [$ids, $name]);
     }
 
     public static function boot()
@@ -286,7 +286,7 @@ class Media extends Model
     /** @return string */
     public function url($conversion = null, $expiration = null)
     {
-        return URL::signedRoute('media.redirect', [
+        return route_signed('media.redirect', [
             'media' => $this,
             'conversion' => $conversion,
         ], $expiration);
@@ -295,7 +295,7 @@ class Media extends Model
     /** @return string */
     public function downloadUrl($conversion = null, $expiration = null)
     {
-        return URL::signedRoute('media.download', [
+        return route_signed('media.download', [
             'media' => $this,
             'conversion' => $conversion,
         ], $expiration);
@@ -304,7 +304,7 @@ class Media extends Model
     /** @return string */
     public function streamUrl($conversion = null, $expiration = null, $name = null)
     {
-        return URL::signedRoute('media.stream', [
+        return route_signed('media.stream', [
             'media' => $this,
             'conversion' => $conversion,
             'name' => $name,
@@ -314,7 +314,7 @@ class Media extends Model
     /** @return string|null */
     public function view($conversion = null, $expiration = null, $name = null)
     {
-        return URL::signedRoute('media.view', [
+        return route_signed('media.view', [
             'media' => $this,
             'conversion' => $conversion,
             'name' => $name,
