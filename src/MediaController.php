@@ -9,7 +9,7 @@ class MediaController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('signed')->only('gallery', 'zip');
+        $this->middleware('signed')->except('upload');
     }
 
     public function gallery($ids)
@@ -54,5 +54,36 @@ class MediaController extends Controller
         return $media->map(function (Media $media) {
             return $media->only(['id', 'size', 'mime', 'name']);
         });
+    }
+
+    public function download(Media $media, $conversion = null)
+    {
+        $url = $media->getConversion($conversion)->file
+            ->downloadUrl(request('expires'), request('name'));
+
+        return redirect($url);
+    }
+
+    public function stream(Media $media, $conversion = null)
+    {
+        $url = $media->getConversion($conversion)->file
+            ->streamUrl(request('expires'), request('name'));
+
+        return redirect($url);
+    }
+
+    public function view(Media $media, $conversion = null)
+    {
+        $url = $media->getConversion($conversion)->file
+            ->view(request('expires'), request('name'));
+
+        return redirect($url);
+    }
+
+    public function redirect(Media $media, $conversion = null)
+    {
+        $url = $media->directUrl($conversion, request('expires'));
+
+        return redirect($url);
     }
 }

@@ -275,16 +275,48 @@ class Media extends Model
         return in_array($name, $this->conversions);
     }
 
-    /** @return string|null */
-    public function url($conversion = null, $expiration = null)
+    /** @return string */
+    public function directUrl($conversion = null, $expiration = null)
     {
         return $this->getConversion($conversion)->file->url($expiration);
     }
 
-    /** @return string|null */
-    public function view($conversion = null, $expiration = null)
+    /** @return string */
+    public function url($conversion = null, $expiration = null)
     {
-        return $this->getConversion($conversion)->file->view($expiration);
+        return URL::signedRoute('media.redirect', [
+            'media' => $this,
+            'conversion' => $conversion,
+        ], $expiration);
+    }
+
+    /** @return string */
+    public function downloadUrl($conversion = null, $expiration = null)
+    {
+        return URL::signedRoute('media.download', [
+            'media' => $this,
+            'conversion' => $conversion,
+        ], $expiration);
+    }
+
+    /** @return string */
+    public function streamUrl($conversion = null, $expiration = null, $name = null)
+    {
+        return URL::signedRoute('media.stream', [
+            'media' => $this,
+            'conversion' => $conversion,
+            'name' => $name,
+        ], $expiration);
+    }
+
+    /** @return string|null */
+    public function view($conversion = null, $expiration = null, $name = null)
+    {
+        return URL::signedRoute('media.view', [
+            'media' => $this,
+            'conversion' => $conversion,
+            'name' => $name,
+        ], $expiration);
     }
 
     public function getAbandonedAttribute()
