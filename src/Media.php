@@ -7,7 +7,6 @@ use Febalist\Laravel\Media\Jobs\MediaConvert;
 use Febalist\Laravel\Media\Resources\MediaResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use URL;
 
 /**
  * @property-read Model         $model
@@ -22,12 +21,13 @@ use URL;
  * @property integer            $model_id
  * @property-read boolean       $abandoned
  * @property string             $name
+ * @property-read string        $filename
  * @property-read string        $extension
  * @property-read string        $icon
  * @property-read string        $type
  * @property-read boolean       $local
  * @property-read resource      $stream
- * @property-read MediaResource $resource
+ * @property-read string        $input_signature
  */
 class Media extends Model
 {
@@ -344,9 +344,14 @@ class Media extends Model
         return $this->attributes['name'] ?? basename($this->path);
     }
 
+    public function getFilenameAttribute()
+    {
+        return File::pathFilename($this->name);
+    }
+
     public function getExtensionAttribute()
     {
-        return $this->file->extension();
+        return File::pathExtension($this->name);
     }
 
     public function getIconAttribute()
@@ -369,8 +374,13 @@ class Media extends Model
         return $this->file->local();
     }
 
-    public function getResourceAttribute()
+    public function getInputSignatureAttribute()
     {
-        return MediaResource::make($this);
+        return hash_hmac('sha256', array_hash(['media', $this->id]), config('app.key'));
+    }
+
+    public function checkInputSignature($signature)
+    {
+        return hash_equals($signature, $this->input_signature);
     }
 }

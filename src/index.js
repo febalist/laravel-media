@@ -57,10 +57,10 @@ module.exports = {
             axios_options.data.append(file.name, file);
 
             if (options.onprogress) {
-              axios_options.onUploadProgress = progressEvent => {
-                const loaded = (progressEvent.loaded / progressEvent.total) || 0;
+              axios_options.onUploadProgress = event => {
+                const loaded = (event.loaded / event.total) || 0;
                 const progress = (uploaded + file.size * loaded) / total;
-                options.onprogress(progress, index, progressEvent);
+                options.onprogress(progress, index, event);
               };
             }
 

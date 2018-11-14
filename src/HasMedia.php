@@ -6,6 +6,7 @@ use Febalist\Laravel\Media\Resources\MediaResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
+use Illuminate\Support\HtmlString;
 
 /**
  * @mixin Model
@@ -148,5 +149,41 @@ trait HasMedia
     public function getMediaResourceCollection()
     {
         return MediaResource::collection($this->media);
+    }
+
+    public function mediaInput($name = 'media')
+    {
+        $value = old($name)
+            ?? ($this->exists ? $this->getMediaResourceCollection()->jsonSerialize() : []);
+        $value = e(is_array($value) ? json_stringify($value) : $value);
+
+        $html = "<model-media-edit name=\"$name\" value=\"$value\"></model-media-edit>";
+
+        return new HtmlString($html);
+    }
+
+    /** @return Collection|Media[] */
+    public function updateMediaFromInput($name = 'media')
+    {
+        $resources = collect(json_parse(request($name), []))->keyBy('id');
+
+        $this->media()->update([
+            'model_type' => null,
+            'model_id' => null,
+        ]);
+
+        $media = Media::findMany($resources->pluck('id'))
+            ->map(function (Media $media) use ($resources) {
+                $resource = $resources[$media->id];
+                $signature = $resource['input_signature'] ?? null;
+                if ($media->checkInputSignature($signature)) {
+                    $filename = filename_normalize($resource['filename'] ?? '');
+                    $extension = $media->extension ? ".$media->extension" : '';
+                    $media->name = $filename.$extension ?: '_';
+                    $media->associate($this);
+                }
+            })->filter();
+
+        return $media;
     }
 }

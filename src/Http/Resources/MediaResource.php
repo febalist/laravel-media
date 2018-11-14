@@ -19,11 +19,11 @@ class MediaResource extends JsonResource
     {
         return [
             'id' => $this->resource->id,
-            'name' => $this->resource->name,
-            'mime' => $this->resource->mime,
-            'size' => $this->resource->size,
+            'filename' => $this->resource->filename,
+            'extension' => $this->resource->extension,
             'url' => $this->resource->url(),
             'view' => $this->resource->view(),
+            'input_signature' => $this->resource->input_signature,
         ];
     }
 }
