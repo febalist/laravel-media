@@ -30,6 +30,8 @@
 </template>
 
 <script>
+  import media from './../media';
+
   export default {
     name: 'model-media-edit',
     props: ['name', 'value'],

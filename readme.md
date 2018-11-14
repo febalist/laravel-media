@@ -21,8 +21,24 @@ MEDIA_QUEUE=media
     }
 ```
 
+## Vue input
+
 ```javascript
-const media = require('@febalist/laravel-media');
+Vue.use(require('@febalist/laravel-media'));
+```
+
+```html
+{{ $model->mediaInput() }}
+```
+
+```php
+$model->updateMediaFromInput();
+```
+
+## JS helpers
+
+```javascript
+const media = require('@febalist/laravel-media/src/media');
 
 media.select_images().then(files => {
   media.upload(files, {
