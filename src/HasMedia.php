@@ -123,10 +123,10 @@ trait HasMedia
     }
 
     /** @return string|null */
-    public function getFirstMediaView($conversion = null, $expiration = null)
+    public function getFirstMediaViewUrl($conversion = null, $expiration = null)
     {
         if ($media = $this->getFirstMedia()) {
-            return $media->view($conversion, $expiration);
+            return $media->viewUrl($conversion, $expiration);
         } else {
             return null;
         }

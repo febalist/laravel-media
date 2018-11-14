@@ -74,7 +74,7 @@ class MediaController extends Controller
     public function view(Media $media)
     {
         $url = $this->getConversionFile($media)
-            ->view(request('expires'), request('name'));
+            ->viewUrl(request('expires'), request('name'));
 
         return redirect($url);
     }

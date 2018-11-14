@@ -22,7 +22,7 @@ class MediaResource extends JsonResource
             'filename' => $this->resource->filename,
             'extension' => $this->resource->extension,
             'url' => $this->resource->url(),
-            'view' => $this->resource->view(),
+            'view_url' => $this->resource->viewUrl(),
             'input_signature' => $this->resource->input_signature,
         ];
     }

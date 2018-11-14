@@ -19,7 +19,7 @@
         <span class="input-group-text" v-if="media.extension">
           .{{ media.extension }}
         </span>
-        <a class="btn btn-outline-secondary" :href="media.view" target="_blank">
+        <a class="btn btn-outline-secondary" :href="media.view_url" target="_blank">
           Открыть
         </a>
         <button class="btn btn-outline-danger" type="button" @click="remove(index)">
