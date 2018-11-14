@@ -167,22 +167,32 @@ trait HasMedia
     {
         $resources = collect(json_parse(request($name), []))->keyBy('id');
 
-        $this->media()->update([
-            'model_type' => null,
-            'model_id' => null,
-        ]);
+        $old_ids = $this->media()->pluck('id')->toArray();
 
         $media = Media::findMany($resources->pluck('id'))
-            ->map(function (Media $media) use ($resources) {
+            ->map(function (Media $media) use ($resources, &$old_ids) {
                 $resource = $resources[$media->id];
                 $signature = $resource['input_signature'] ?? null;
+
                 if ($media->checkInputSignature($signature)) {
                     $filename = filename_normalize($resource['filename'] ?? '');
                     $extension = $media->extension ? ".$media->extension" : '';
                     $media->name = $filename.$extension ?: '_';
-                    $media->associate($this);
+
+                    if (in_array($media->id, $old_ids)) {
+                        $old_ids = array_without($old_ids, $media->id);
+                    } else {
+                        $media->associate($this);
+                    }
                 }
             })->filter();
+
+        if ($old_ids) {
+            Media::whereIn('id', $old_ids)->update([
+                'model_type' => null,
+                'model_id' => null,
+            ]);
+        }
 
         return $media;
     }

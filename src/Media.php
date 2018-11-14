@@ -4,30 +4,29 @@ namespace Febalist\Laravel\Media;
 
 use Febalist\Laravel\File\File;
 use Febalist\Laravel\Media\Jobs\MediaConvert;
-use Febalist\Laravel\Media\Resources\MediaResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 /**
- * @property-read Model         $model
- * @property-read File          $file
- * @property string             $disk
- * @property string             $target_disk
- * @property string             $path
- * @property integer            $size
- * @property string             $mime
- * @property array              $conversions
- * @property string             $model_type
- * @property integer            $model_id
- * @property-read boolean       $abandoned
- * @property string             $name
- * @property-read string        $filename
- * @property-read string        $extension
- * @property-read string        $icon
- * @property-read string        $type
- * @property-read boolean       $local
- * @property-read resource      $stream
- * @property-read string        $input_signature
+ * @property-read Model    $model
+ * @property-read File     $file
+ * @property string        $disk
+ * @property string        $target_disk
+ * @property string        $path
+ * @property integer       $size
+ * @property string        $mime
+ * @property array         $conversions
+ * @property string        $model_type
+ * @property integer       $model_id
+ * @property-read boolean  $abandoned
+ * @property string        $name
+ * @property-read string   $filename
+ * @property-read string   $extension
+ * @property-read string   $icon
+ * @property-read string   $type
+ * @property-read boolean  $local
+ * @property-read resource $stream
+ * @property-read string   $input_signature
  */
 class Media extends Model
 {
