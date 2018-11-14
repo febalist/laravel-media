@@ -1,25 +1,26 @@
 <template>
   <div v-cloak>
-    <input type="hidden" :name="name" :value="value_json">
+    <input type="hidden" :name="options.name" :value="value_json">
 
-    <div class="">
-      <button type="button" class="btn btn-secondary"
-              :disabled="progress !== null" @click="select_files">
-        Загрузить файлы
+    <div v-if="options.multiple || media_array.length === 0">
+      <button type="button" class="btn btn-secondary" @click="select_files"
+              :disabled="progress !== null">
+        Выбрать {{ options.multiple ? 'файлы' : 'файл' }}
       </button>
       <span class="ml-2" v-if="progress !== null">
         {{ progress * 100 }}%
       </span>
     </div>
 
-    <div class="input-group mt-1" v-for="(media, index) in media_array">
+    <div class="input-group" v-for="(media, index) in media_array"
+         :class="index === 0 && !(options.multiple || media_array.length === 0) ? '' : 'mt-1'">
       <input type="text" class="form-control" v-model="media.filename" pattern="^[^\\/%?*:|<>&quot;]*$">
       <div class="input-group-append">
         <span class="input-group-text" v-if="media.extension">
           .{{ media.extension }}
         </span>
         <a class="btn btn-outline-secondary" :href="media.view" target="_blank">
-          Просмотр
+          Открыть
         </a>
         <button class="btn btn-outline-danger" type="button" @click="remove(index)">
           Удалить
@@ -34,17 +35,13 @@
 
   export default {
     name: 'model-media-edit',
-    props: ['name', 'value'],
+    props: ['data'],
     data() {
-      let media_array = this.value;
-      try {
-        media_array = JSON.parse(media_array);
-      } catch (e) {
-        media_array = [];
-      }
+      let options = JSON.parse(this.data);
 
       return {
-        media_array,
+        options,
+        media_array: options.value,
         progress: null,
         timeout: null,
       };
@@ -71,9 +68,10 @@
     },
     methods: {
       select_files: function() {
-        media.select_files().then(files => {
-          this.upload_files(files);
-        });
+        media.select(this.options.multiple, this.options.mime)
+            .then(files => {
+              this.upload_files(files);
+            });
       },
       upload_files: function(files) {
         media.upload(files, {

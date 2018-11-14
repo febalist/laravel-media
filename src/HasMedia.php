@@ -151,15 +151,15 @@ trait HasMedia
         return MediaResource::collection($this->media);
     }
 
-    public function mediaInput($name = 'media')
+    public function mediaInput(array $options = [])
     {
-        $value = old($name)
+        $options['name'] = $options['name'] ?? 'media';
+        $options['value'] = json_parse(old($options['name']))
             ?? ($this->exists ? $this->getMediaResourceCollection()->jsonSerialize() : []);
-        $value = e(is_array($value) ? json_stringify($value) : $value);
 
-        $html = "<model-media-edit name=\"$name\" value=\"$value\"></model-media-edit>";
+        $data = e(json_stringify($options));
 
-        return new HtmlString($html);
+        return new HtmlString("<model-media-edit data=\"$data\"></model-media-edit>");
     }
 
     /** @return Collection|Media[] */

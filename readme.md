@@ -28,7 +28,7 @@ Vue.use(require('@febalist/laravel-media'));
 ```
 
 ```html
-{{ $model->mediaInput() }}
+{{ $model->mediaInput(['multiple' => true, 'mime' => 'image/*']) }}
 ```
 
 ```php
