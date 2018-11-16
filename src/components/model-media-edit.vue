@@ -2,16 +2,19 @@
   <div v-cloak>
     <input type="hidden" :name="options.name" :value="value_json">
 
-    <div v-if="options.multiple || media_array.length === 0">
-      <button type="button" class="btn btn-secondary" @click="select_files"
-              :disabled="progress !== null">
-        Выбрать {{ options.multiple ? 'файлы' : 'файл' }}
-      </button>
-      <span class="ml-2" v-if="progress !== null">
-        {{ (progress * 100).toFixed() }}%
-      </span>
+    <div v-if="!limit_reached">
+      <div class="clearfix">
+        <span class="float-right mt-1" v-if="uploading_active">
+          {{ (progress * 100).toFixed() }}%
+        </span>
 
-      <div v-if="window_drag && progress === null" id="drag" class="text-center mt-1 p-5 border rounded"
+        <button type="button" class="btn btn-secondary" @click="select_files"
+                :disabled="!uploading_available">
+          Выбрать {{ options.multiple ? 'файлы' : 'файл' }}
+        </button>
+      </div>
+
+      <div v-if="drop_zone_visible" id="drag" class="text-center mt-1 p-5 border rounded"
            ref="drop_zone" :class="drop_zone_drag ? 'border-primary text-primary' : ''">
         Перетащите файлы сюда
       </div>
@@ -58,6 +61,18 @@
       value_json: function() {
         return JSON.stringify(this.media_array);
       },
+      uploading_active: function() {
+        return this.progress !== null;
+      },
+      uploading_available: function() {
+        return !this.uploading_active;
+      },
+      drop_zone_visible: function() {
+        return this.window_drag && this.uploading_available;
+      },
+      limit_reached: function() {
+        return !this.options.multiple && this.media_array.length > 0;
+      },
     },
     watch: {
       progress: function(value) {
@@ -76,24 +91,28 @@
     },
     methods: {
       select_files: function() {
-        media.select(this.options.multiple, this.options.mime)
-            .then(files => {
-              this.upload_files(files);
-            });
+        if (this.uploading_available) {
+          media.select(this.options.multiple, this.options.mime)
+              .then(files => {
+                this.upload_files(files);
+              });
+        }
       },
       upload_files: function(files) {
-        media.upload(files, {
-          onprogress: (progress, index, event) => {
-            this.progress = progress;
-          },
-          onuploaded: (result, error, file) => {
-            if (result) {
-              this.media_array = this.media_array.concat(result);
-            } else {
-              console.log(error);
-            }
-          },
-        });
+        if (this.uploading_available) {
+          media.upload(files, {
+            onprogress: (progress, index, event) => {
+              this.progress = progress;
+            },
+            onuploaded: (result, error, file) => {
+              if (result) {
+                this.media_array = this.media_array.concat(result);
+              } else {
+                console.log(error);
+              }
+            },
+          });
+        }
       },
       remove: function(index) {
         this.media_array.splice(index, 1);
