@@ -18,6 +18,7 @@
   "homepage": "https://github.com/febalist/laravel-media#readme",
   "dependencies": {
     "axios": "^0.18",
-    "promise-waterfall": "^0.1"
+    "promise-waterfall": "^0.1",
+    "lodash": "^4.0"
   }
 }

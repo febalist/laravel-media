@@ -10,6 +10,11 @@
       <span class="ml-2" v-if="progress !== null">
         {{ progress * 100 }}%
       </span>
+
+      <div v-if="window_drag && progress === null" id="drag" class="text-center mt-1 p-5 border rounded"
+           ref="drop_zone" :class="drop_zone_drag ? 'border-primary text-primary' : ''">
+        Перетащите файлы сюда
+      </div>
     </div>
 
     <div class="input-group" v-for="(media, index) in media_array"
@@ -32,6 +37,7 @@
 
 <script>
   import media from './../media';
+  import _ from 'lodash';
 
   export default {
     name: 'model-media-edit',
@@ -44,6 +50,8 @@
         media_array: options.value,
         progress: null,
         timeout: null,
+        window_drag: false,
+        drop_zone_drag: false,
       };
     },
     computed: {
@@ -90,8 +98,54 @@
       remove: function(index) {
         this.media_array.splice(index, 1);
       },
+      on_paste: function(event) {
+        const clipboardData = event.clipboardData || event.originalEvent.clipboardData;
+        const files = [];
+
+        for (let item of clipboardData.items) {
+          if (item.kind == 'file') {
+            const file = item.getAsFile();
+            files.push(file);
+          }
+        }
+
+        this.upload_files(files);
+      },
+      on_drag: function(event) {
+        this.window_drag = ['dragenter', 'dragover'].includes(event.type);
+        this.drop_zone_drag = this.window_drag && event.target == this.$refs.drop_zone;
+      },
+      on_drop: function(event) {
+        if (event.target == this.$refs.drop_zone) {
+          const dataTransfer = event.dataTransfer || event.originalEvent.dataTransfer;
+          const files = [];
+
+          for (let file of dataTransfer.files) {
+            files.push(file);
+          }
+
+          this.upload_files(files);
+        }
+      },
     },
     mounted() {
+      window.addEventListener('paste', this.on_paste, false);
+      window.addEventListener('drop', event => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.on_drop(event);
+      }, false);
+
+      const on_drag = _.throttle(this.on_drag, 100);
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
+        window.addEventListener(event, event => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          on_drag(event);
+        }, false);
+      });
     },
   };
 </script>
