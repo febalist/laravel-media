@@ -8,7 +8,7 @@
         Выбрать {{ options.multiple ? 'файлы' : 'файл' }}
       </button>
       <span class="ml-2" v-if="progress !== null">
-        {{ progress * 100 }}%
+        {{ (progress * 100).toFixed() }}%
       </span>
 
       <div v-if="window_drag && progress === null" id="drag" class="text-center mt-1 p-5 border rounded"
@@ -84,7 +84,7 @@
       upload_files: function(files) {
         media.upload(files, {
           onprogress: (progress, index, event) => {
-            this.progress = parseFloat(progress.toFixed(2));
+            this.progress = progress;
           },
           onuploaded: (result, error, file) => {
             if (result) {
