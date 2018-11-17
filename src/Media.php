@@ -4,6 +4,7 @@ namespace Febalist\Laravel\Media;
 
 use Febalist\Laravel\File\File;
 use Febalist\Laravel\Media\Jobs\MediaConvert;
+use Febalist\Laravel\Media\Jobs\MediaUpdateSha1;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
@@ -27,6 +28,7 @@ use Illuminate\Support\Collection;
  * @property-read string|bool $local
  * @property-read resource    $stream
  * @property-read string      $input_signature
+ * @property-read string      $sha1
  */
 class Media extends Model
 {
@@ -219,6 +221,10 @@ class Media extends Model
             $this->deleteConversions();
 
             if (method_exists($this->model, 'mediaConvert')) {
+                if (!$this->sha1) {
+                    $this->updateSha1(true);
+                }
+
                 $conversions = $this->conversions;
 
                 $converter = new MediaConverter($this->file);
@@ -383,5 +389,33 @@ class Media extends Model
     public function checkInputSignature($signature)
     {
         return hash_equals($signature, $this->input_signature);
+    }
+
+    public function updateSha1($run = false)
+    {
+        if ($run) {
+            $this->update([
+                'sha1' => $this->file->sha1(),
+            ]);
+        } else {
+            if ($queue = config('media.queue')) {
+                MediaUpdateSha1::dispatch($this)->onQueue($queue);
+            } else {
+                MediaUpdateSha1::dispatchNow($this);
+            }
+        }
+    }
+
+    public function checkSha1($sha1, $force = false)
+    {
+        if (!$this->sha1) {
+            if ($force) {
+                $this->updateSha1(true);
+            } else {
+                return null;
+            }
+        }
+
+        return $this->sha1 == $sha1;
     }
 }
