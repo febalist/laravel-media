@@ -19,9 +19,8 @@ class MediaResource extends JsonResource
     {
         return [
             'id' => $this->resource->id,
-            'filename' => $this->resource->filename,
+            'name' => $this->resource->name,
             'extension' => $this->resource->extension,
-            'url' => $this->resource->url(),
             'view_url' => $this->resource->viewUrl(),
             'input_signature' => $this->resource->input_signature,
         ];

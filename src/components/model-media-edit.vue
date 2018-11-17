@@ -4,11 +4,9 @@
 
     <div class="input-group mb-1" v-for="(item, index) in items">
       <template v-if="item.media">
-        <input type="text" class="form-control" :class="item.file ? 'is-valid' : ''" v-model="item.media.filename" pattern="^[^\\/%?*:|<>&quot;]*$">
+        <input type="text" class="form-control" :class="item.file ? 'is-valid' : ''" v-model="item.media.name"
+               @blur="on_name_blur(index)" pattern="^[^\.][^\\/%?*:|<>&quot;]*$" required>
         <div class="input-group-append">
-          <span class="input-group-text" v-if="item.media.extension">
-            .{{ item.media.extension }}
-          </span>
           <a class="btn btn-outline-secondary" :href="item.media.view_url" target="_blank">
             <i class="fas fa-fw fa-external-link-alt"></i>
           </a>
@@ -19,7 +17,7 @@
       </template>
       <template v-else>
         <input type="text" class="form-control" :class="item.error ? 'is-invalid' : ''"
-               :value="item.file.name || 'file'" readonly>
+               :value="item.file.name" readonly>
         <div class="input-group-append">
           <span class="input-group-text" v-if="item.progress !== null && !item.error">
             {{ (item.progress * 100).toFixed() }} %
@@ -46,7 +44,7 @@
         <i class="fas fa-2x fa-cloud-upload-alt"></i>
       </div>
 
-      <div v-else class="">
+      <div v-else>
         <button type="button" class="btn btn-secondary" @click="select_files"
                 :disabled="!uploading_available">
           <i class="fas fa-fw fa-plus"></i>
@@ -90,6 +88,15 @@
     },
     watch: {},
     methods: {
+      on_name_blur: function(index) {
+        const item = this.items[index];
+        if (item.media.name) {
+          const extension = item.media.extension ? '.' + item.media.extension : null;
+          if (extension && !item.media.name.endsWith(extension)) {
+            item.media.name += extension;
+          }
+        }
+      },
       select_files: function() {
         if (this.uploading_available) {
           media.select(this.options.multiple, this.options.mime)

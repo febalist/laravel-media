@@ -175,11 +175,10 @@ trait HasMedia
                 $signature = $resource['input_signature'] ?? null;
 
                 if ($media->checkInputSignature($signature)) {
-                    $filename = filename_normalize($resource['filename'] ?? '');
+                    $name = filename_normalize($resource['name'] ?? '');
                     $extension = $media->extension ? ".$media->extension" : '';
-                    $media->update([
-                        'name' => $filename.$extension ?: '_',
-                    ]);
+                    $name = str_finish($name, $extension) ?: '_';
+                    $media->update(compact('name'));
 
                     if (in_array($media->id, $old_ids)) {
                         $old_ids = array_without($old_ids, $media->id);
