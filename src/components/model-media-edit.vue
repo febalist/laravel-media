@@ -7,7 +7,7 @@
         <input type="text" class="form-control removed"
                :value="item.media ? item.media.name : item.file.name" readonly>
         <div class="input-group-append">
-          <button class="btn btn-outline-secondary" type="button" @click="restore(index)">
+          <button class="btn btn-outline-secondary" type="button" @click="restore(index)" :disabled="limit_reached">
             <i class="fas fa-fw fa-undo"></i>
           </button>
         </div>
@@ -31,7 +31,8 @@
           <span class="input-group-text" v-if="item.progress !== null && !item.error">
             {{ (item.progress * 100).toFixed() }} %
           </span>
-          <button type="button" class="btn btn-outline-secondary" :disabled="!item.error" @click="retry(index)">
+          <button type="button" class="btn btn-outline-secondary" @click="retry(index)"
+                  :disabled="!item.error || limit_reached">
             <template v-if="item.error">
               <i class="fas fa-fw fa-redo"></i>
             </template>
@@ -47,18 +48,16 @@
       </template>
     </div>
 
-    <div v-if="!limit_reached">
-      <div v-if="drop_zone_visible" id="drag" class="text-center mt-1 py-5 border rounded"
-           ref="drop_zone" :class="drop_zone_drag ? 'border-primary text-primary' : ''">
-        <i class="fas fa-2x fa-cloud-upload-alt"></i>
-      </div>
+    <div v-if="drop_zone_visible && !limit_reached" id="drag" class="text-center mt-1 py-5 border rounded"
+         ref="drop_zone" :class="drop_zone_drag ? 'border-primary text-primary' : ''">
+      <i class="fas fa-2x fa-cloud-upload-alt"></i>
+    </div>
 
-      <div v-else>
-        <button type="button" class="btn btn-secondary" @click="select_files"
-                :disabled="!uploading_available">
-          <i class="fas fa-fw fa-plus"></i>
-        </button>
-      </div>
+    <div v-else>
+      <button type="button" class="btn btn-secondary" @click="select_files"
+              :disabled="!uploading_available">
+        <i class="fas fa-fw fa-plus"></i>
+      </button>
     </div>
   </div>
 </template>
@@ -82,8 +81,11 @@
       };
     },
     computed: {
+      media: function() {
+        return this.items.filter(item => !item.removed && item.media).map(item => item.media);
+      },
       value_json: function() {
-        return JSON.stringify(this.items.filter(item => !item.removed && item.media).map(item => item.media));
+        return JSON.stringify(this.media);
       },
       uploading_available: function() {
         return !this.limit_reached;
@@ -92,7 +94,7 @@
         return this.window_drag && this.uploading_available;
       },
       limit_reached: function() {
-        return !this.options.multiple && this.items.length > 0;
+        return !this.options.multiple && this.media.length > 0;
       },
     },
     watch: {},
@@ -117,16 +119,14 @@
       add_items: function(items) {
         if (this.uploading_available) {
           for (let item of items) {
-            if (!this.limit_reached) {
-              const plain = _.isPlainObject(item);
-              this.items.push({
-                file: plain ? null : item,
-                media: plain ? item : null,
-                progress: plain ? 1 : null,
-                error: null,
-                removed: false,
-              });
-            }
+            const plain = _.isPlainObject(item);
+            this.items.push({
+              file: plain ? null : item,
+              media: plain ? item : null,
+              progress: plain ? 1 : null,
+              error: null,
+              removed: this.limit_reached,
+            });
           }
 
           this.upload_next_file();
@@ -149,6 +149,7 @@
           },
           onuploaded: (result, error, file) => {
             if (result && result[0]) {
+              item.removed = this.limit_reached;
               item.media = result[0];
             } else {
               item.error = error || true;
