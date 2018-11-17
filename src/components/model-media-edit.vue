@@ -4,36 +4,54 @@
 
     <div v-if="!limit_reached">
       <div class="clearfix">
-        <span class="float-right mt-1" v-if="uploading_active">
-          {{ (progress * 100).toFixed() }}%
-        </span>
-
         <button type="button" class="btn btn-secondary" @click="select_files"
                 :disabled="!uploading_available">
-          Выбрать {{ options.multiple ? 'файлы' : 'файл' }}
+          <i class="fas fa-fw fa-plus"></i>
         </button>
       </div>
 
-      <div v-if="drop_zone_visible" id="drag" class="text-center mt-1 p-5 border rounded"
-           ref="drop_zone" :class="drop_zone_drag ? 'border-primary text-primary' : ''">
-        Перетащите файлы сюда
+      <div v-if="drop_zone_visible" id="drag" class="text-center mt-1 py-5 border rounded"
+           ref="drop_zone" :class="drop_zone_drag ? 'border-primary text-primary shadow' : ''">
+        <i class="fas fa-2x fa-cloud-upload-alt"></i>
       </div>
     </div>
 
-    <div class="input-group" v-for="(media, index) in media_array"
-         :class="index === 0 && !(options.multiple || media_array.length === 0) ? '' : 'mt-1'">
-      <input type="text" class="form-control" v-model="media.filename" pattern="^[^\\/%?*:|<>&quot;]*$">
-      <div class="input-group-append">
-        <span class="input-group-text" v-if="media.extension">
-          .{{ media.extension }}
-        </span>
-        <a class="btn btn-outline-secondary" :href="media.view_url" target="_blank">
-          Открыть
-        </a>
-        <button class="btn btn-outline-danger" type="button" @click="remove(index)">
-          Удалить
-        </button>
-      </div>
+    <div class="input-group mt-1" v-for="(item, index) in items">
+      <template v-if="item.media">
+        <input type="text" class="form-control" :class="item.file ? 'is-valid' : ''" v-model="item.media.filename" pattern="^[^\\/%?*:|<>&quot;]*$">
+        <div class="input-group-append">
+          <span class="input-group-text" v-if="item.media.extension">
+            .{{ item.media.extension }}
+          </span>
+          <a class="btn btn-outline-secondary" :href="item.media.view_url" target="_blank">
+            <i class="fas fa-fw fa-external-link-alt"></i>
+          </a>
+          <button class="btn btn-outline-danger" type="button" @click="remove(index)">
+            <i class="fas fa-fw fa-times"></i>
+          </button>
+        </div>
+      </template>
+      <template v-else>
+        <input type="text" class="form-control" :class="item.error ? 'is-invalid' : ''"
+               :value="item.file.name || 'file'" readonly>
+        <div class="input-group-append">
+          <span class="input-group-text" v-if="item.progress !== null && !item.error">
+            {{ (item.progress * 100).toFixed() }} %
+          </span>
+          <button type="button" class="btn btn-outline-secondary" :disabled="!item.error" @click="retry(index)">
+            <template v-if="item.error">
+              <i class="fas fa-fw fa-redo"></i>
+            </template>
+            <template v-else>
+              <i class="fas fa-fw fa-spinner fa-pulse"></i>
+            </template>
+          </button>
+          <button type="button" class="btn btn-outline-danger" :disabled="!(item.progress === null || item.error)"
+                  @click="remove(index)">
+            <i class="fas fa-fw fa-times"></i>
+          </button>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -50,72 +68,89 @@
 
       return {
         options,
-        media_array: options.value,
-        progress: null,
-        timeout: null,
+        uploading_active: false,
         window_drag: false,
         drop_zone_drag: false,
+        items: [],
       };
     },
     computed: {
       value_json: function() {
-        return JSON.stringify(this.media_array);
-      },
-      uploading_active: function() {
-        return this.progress !== null;
+        return JSON.stringify(this.items.map(item => item.media).filter(_.identity));
       },
       uploading_available: function() {
-        return !this.uploading_active;
+        return !this.limit_reached;
       },
       drop_zone_visible: function() {
         return this.window_drag && this.uploading_available;
       },
       limit_reached: function() {
-        return !this.options.multiple && this.media_array.length > 0;
+        return !this.options.multiple && this.items.length > 0;
       },
     },
-    watch: {
-      progress: function(value) {
-        if (value === 1) {
-          this.timeout = setTimeout(() => {
-            if (this.progress === 1) {
-              this.progress = null;
-              this.$forceUpdate();
-            }
-          }, 1000 * 0.5);
-        } else if (this.timeout) {
-          clearTimeout(this.timeout);
-          this.timeout = null;
-        }
-      },
-    },
+    watch: {},
     methods: {
       select_files: function() {
         if (this.uploading_available) {
           media.select(this.options.multiple, this.options.mime)
               .then(files => {
-                this.upload_files(files);
+                this.add_items(files);
               });
         }
       },
-      upload_files: function(files) {
+      add_items: function(items) {
         if (this.uploading_available) {
-          media.upload(files, {
-            onprogress: (progress, index, event) => {
-              this.progress = progress;
-            },
-            onuploaded: (result, error, file) => {
-              if (result) {
-                this.media_array = this.media_array.concat(result);
-              } else {
-                console.log(error);
-              }
-            },
-          });
+          for (let item of items) {
+            if (!this.limit_reached) {
+              const plain = _.isPlainObject(item);
+              this.items.push({
+                file: plain ? null : item,
+                media: plain ? item : null,
+                progress: plain ? 1 : null,
+                error: null,
+              });
+            }
+          }
+
+          this.upload_next_file();
         }
       },
+      upload_next_file: function() {
+        if (this.uploading_active) return;
+        this.uploading_active = true;
+
+        const item = this.items.find(item => !item.media && !item.error);
+
+        if (!item) {
+          this.uploading_active = false;
+          return;
+        }
+
+        media.upload(item.file, {
+          onprogress: (progress, index, event) => {
+            item.progress = progress;
+          },
+          onuploaded: (result, error, file) => {
+            if (result && result[0]) {
+              item.media = result[0];
+            } else {
+              item.error = error || true;
+              console.log('Upload error:', error);
+            }
+
+            this.uploading_active = false;
+            this.upload_next_file();
+          },
+        });
+      },
       remove: function(index) {
-        this.media_array.splice(index, 1);
+        this.items.splice(index, 1);
+      },
+      retry: function(index) {
+        const item = this.items[index];
+        item.error = null;
+        item.progress = null;
+        this.upload_next_file();
       },
       on_paste: function(event) {
         const clipboardData = event.clipboardData || event.originalEvent.clipboardData;
@@ -128,7 +163,7 @@
           }
         }
 
-        this.upload_files(files);
+        this.add_items(files);
       },
       on_drag: function(event) {
         this.window_drag = ['dragenter', 'dragover'].includes(event.type);
@@ -143,11 +178,13 @@
             files.push(file);
           }
 
-          this.upload_files(files);
+          this.add_items(files);
         }
       },
     },
     mounted() {
+      this.add_items(this.options.value);
+
       window.addEventListener('paste', this.on_paste, false);
       window.addEventListener('drop', event => {
         event.preventDefault();
@@ -169,7 +206,9 @@
   };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+  @import url("https://use.fontawesome.com/releases/v5.5.0/css/all.css");
+
   [v-cloak] {
     display: none;
   }
