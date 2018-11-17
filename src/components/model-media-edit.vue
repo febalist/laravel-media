@@ -3,7 +3,16 @@
     <input type="hidden" :name="options.name" :value="value_json">
 
     <div class="input-group mb-1" v-for="(item, index) in items">
-      <template v-if="item.media">
+      <template v-if="item.removed">
+        <input type="text" class="form-control removed"
+               :value="item.media ? item.media.name : item.file.name" readonly>
+        <div class="input-group-append">
+          <button class="btn btn-outline-secondary" type="button" @click="restore(index)">
+            <i class="fas fa-fw fa-undo"></i>
+          </button>
+        </div>
+      </template>
+      <template v-else-if="item.media">
         <input type="text" class="form-control" :class="item.file ? 'is-valid' : ''" v-model="item.media.name"
                @blur="on_name_blur(index)" pattern="^[^\.][^\\/%?*:|<>&quot;]*$" required>
         <div class="input-group-append">
@@ -74,7 +83,7 @@
     },
     computed: {
       value_json: function() {
-        return JSON.stringify(this.items.map(item => item.media).filter(_.identity));
+        return JSON.stringify(this.items.filter(item => !item.removed && item.media).map(item => item.media));
       },
       uploading_available: function() {
         return !this.limit_reached;
@@ -115,6 +124,7 @@
                 media: plain ? item : null,
                 progress: plain ? 1 : null,
                 error: null,
+                removed: false,
               });
             }
           }
@@ -126,7 +136,7 @@
         if (this.uploading_active) return;
         this.uploading_active = true;
 
-        const item = this.items.find(item => !item.media && !item.error);
+        const item = this.items.find(item => !item.removed && !item.media && !item.error);
 
         if (!item) {
           this.uploading_active = false;
@@ -151,7 +161,14 @@
         });
       },
       remove: function(index) {
-        this.items.splice(index, 1);
+        this.items[index].removed = true;
+      },
+      restore: function(index) {
+        const item = this.items[index];
+        item.removed = false;
+        if (item.error) {
+          this.retry(index);
+        }
       },
       retry: function(index) {
         const item = this.items[index];
@@ -220,10 +237,7 @@
     display: none;
   }
 
-  .truncate {
-    width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .removed {
+    opacity: 0.3;
   }
 </style>
