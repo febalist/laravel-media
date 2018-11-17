@@ -205,11 +205,19 @@
           this.add_items(files);
         }
       },
+      on_unload: function(event) {
+        if (this.uploading_active) {
+          event.preventDefault();
+          event.returnValue = '';
+        }
+      },
     },
     mounted() {
       this.add_items(this.options.value);
 
+      //window.addEventListener('beforeunload', this.on_unload, false);
       window.addEventListener('paste', this.on_paste, false);
+
       window.addEventListener('drop', event => {
         event.preventDefault();
         event.stopPropagation();
@@ -218,8 +226,8 @@
       }, false);
 
       const on_drag = _.throttle(this.on_drag, 100);
-      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
-        window.addEventListener(event, event => {
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(type => {
+        window.addEventListener(type, event => {
           event.preventDefault();
           event.stopPropagation();
 
