@@ -49,7 +49,7 @@
 
     <div v-if="!limit_reached">
       <div v-if="drop_zone_visible" id="drag" class="text-center mt-1 py-5 border rounded"
-           ref="drop_zone" :class="drop_zone_drag ? 'border-primary text-primary shadow' : ''">
+           ref="drop_zone" :class="drop_zone_drag ? 'border-primary text-primary' : ''">
         <i class="fas fa-2x fa-cloud-upload-alt"></i>
       </div>
 
@@ -191,7 +191,8 @@
       },
       on_drag: function(event) {
         this.window_drag = ['dragenter', 'dragover'].includes(event.type);
-        this.drop_zone_drag = this.window_drag && event.target == this.$refs.drop_zone;
+        this.drop_zone_drag = this.window_drag && this.$refs.drop_zone
+            && (this.$refs.drop_zone == event.target || this.$refs.drop_zone.contains(event.target));
       },
       on_drop: function(event) {
         if (event.target == this.$refs.drop_zone) {
