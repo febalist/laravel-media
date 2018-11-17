@@ -14,7 +14,7 @@
       </template>
       <template v-else-if="item.media">
         <input type="text" class="form-control" :class="item.file ? 'is-valid' : ''" v-model="item.media.name"
-               @blur="on_name_blur(index)" pattern="^[^\.][^\\/%?*:|<>&quot;]*$" required>
+               @blur="on_name_blur(index)" pattern="^[^\\/%?*:|<>&quot;]*$" required>
         <div class="input-group-append">
           <a class="btn btn-outline-secondary" :href="item.media.view_url" target="_blank">
             <i class="fas fa-fw fa-external-link-alt"></i>
