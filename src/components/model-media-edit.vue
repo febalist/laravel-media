@@ -2,21 +2,7 @@
   <div v-cloak>
     <input type="hidden" :name="options.name" :value="value_json">
 
-    <div v-if="!limit_reached">
-      <div class="clearfix">
-        <button type="button" class="btn btn-secondary" @click="select_files"
-                :disabled="!uploading_available">
-          <i class="fas fa-fw fa-plus"></i>
-        </button>
-      </div>
-
-      <div v-if="drop_zone_visible" id="drag" class="text-center mt-1 py-5 border rounded"
-           ref="drop_zone" :class="drop_zone_drag ? 'border-primary text-primary shadow' : ''">
-        <i class="fas fa-2x fa-cloud-upload-alt"></i>
-      </div>
-    </div>
-
-    <div class="input-group mt-1" v-for="(item, index) in items">
+    <div class="input-group mb-1" v-for="(item, index) in items">
       <template v-if="item.media">
         <input type="text" class="form-control" :class="item.file ? 'is-valid' : ''" v-model="item.media.filename" pattern="^[^\\/%?*:|<>&quot;]*$">
         <div class="input-group-append">
@@ -52,6 +38,20 @@
           </button>
         </div>
       </template>
+    </div>
+
+    <div v-if="!limit_reached">
+      <div v-if="drop_zone_visible" id="drag" class="text-center mt-1 py-5 border rounded"
+           ref="drop_zone" :class="drop_zone_drag ? 'border-primary text-primary shadow' : ''">
+        <i class="fas fa-2x fa-cloud-upload-alt"></i>
+      </div>
+
+      <div v-else class="">
+        <button type="button" class="btn btn-secondary" @click="select_files"
+                :disabled="!uploading_available">
+          <i class="fas fa-fw fa-plus"></i>
+        </button>
+      </div>
     </div>
   </div>
 </template>
