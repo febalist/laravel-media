@@ -1,5 +1,3 @@
-const waterfall = require('promise-waterfall');
-
 module.exports = {
   select: function(multiple, mime) {
     return new Promise(resolve => {
@@ -84,9 +82,21 @@ module.exports = {
         });
       });
 
-      waterfall(sequence).then(() => {
+      let promise = sequence.shift();
+
+      if (promise) {
+        promise = promise();
+
+        sequence.forEach(next => {
+          promise = promise.then(() => next());
+        });
+
+        promise.then(() => {
+          resolve(result);
+        });
+      } else {
         resolve(result);
-      });
+      }
     });
   },
 };
