@@ -2,7 +2,6 @@
 composer require febalist/laravel-media
 php artisan vendor:publish --provider 'Febalist\Laravel\Media\MediaServiceProvider'
 php artisan migrate
-npm install @febalist/laravel-media@^1.0
 ``` 
 
 ```dotenv
@@ -24,7 +23,7 @@ MEDIA_QUEUE=media
 ## Vue input
 
 ```javascript
-Vue.use(require('@febalist/laravel-media'));
+Vue.use(require('./../../vendor/febalist/laravel-media/src/index'));
 ```
 
 ```html
@@ -38,8 +37,7 @@ $model->updateMediaFromInput();
 ## JS helpers
 
 ```javascript
-const media = require('@febalist/laravel-media/src/media');
-
+const media = require('./../../vendor/febalist/laravel-media/src/media');
 media.select_images().then(files => {
   media.upload(files, {
     model_type: 'App\\User',
