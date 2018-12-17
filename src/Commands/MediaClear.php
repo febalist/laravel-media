@@ -4,6 +4,7 @@ namespace Febalist\Laravel\Media\Commands;
 
 use Febalist\Laravel\Media\Media;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Builder;
 
 class MediaClear extends Command
 {
@@ -12,7 +13,7 @@ class MediaClear extends Command
      *
      * @var string
      */
-    protected $signature = 'media:clear {--check : Delete media models without files}';
+    protected $signature = 'media:clear {--check : Delete media models without files} {--d|delay= : Ignore recently updated files}';
 
     /**
      * The console command description.
@@ -30,7 +31,10 @@ class MediaClear extends Command
     {
         $check = $this->option('check');
 
-        $query = Media::query();
+        $query = Media::query()
+            ->when($this->option('delay'), function (Builder $builder, $delay) {
+                return $builder->where('updated_at', '<', now()->subMinutes($delay));
+            });
 
         $bar = $this->output->createProgressBar($query->count());
 
