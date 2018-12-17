@@ -13,7 +13,7 @@ class MediaClear extends Command
      *
      * @var string
      */
-    protected $signature = 'media:clear {--check : Delete media models without files} {--d|delay= : Ignore recently updated files}';
+    protected $signature = 'media:clear {disk? : Only media in this disk} {--check : Delete media models without files} {--d|delay= : Ignore recently updated files}';
 
     /**
      * The console command description.
@@ -32,6 +32,9 @@ class MediaClear extends Command
         $check = $this->option('check');
 
         $query = Media::query()
+            ->when($this->argument('disk'), function (Builder $builder, $disk) {
+                return $builder->where('disk', $disk);
+            })
             ->when($this->option('delay'), function (Builder $builder, $delay) {
                 return $builder->where('updated_at', '<', now()->subMinutes($delay));
             });
