@@ -125,6 +125,11 @@ class Media extends Model
         return static::fromFile($url, $disk, $name);
     }
 
+    public static function diskName($name = null)
+    {
+        return File::diskName($name ?: static::defaultDisk());
+    }
+
     protected static function tempDisk()
     {
         $default = config('media.local.default');
@@ -176,7 +181,7 @@ class Media extends Model
 
     public function move($disk = null)
     {
-        $target_disk = File::diskName($disk ?: static::defaultDisk());
+        $target_disk = static::diskName($disk);
         $disk = $target_disk;
         $path = static::generatePath($this->file->name());
 

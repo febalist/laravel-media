@@ -2,7 +2,6 @@
 
 namespace Febalist\Laravel\Media\Commands;
 
-use Febalist\Laravel\File\File;
 use Febalist\Laravel\Media\Media;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,12 +29,12 @@ class MediaMove extends Command
      */
     public function handle()
     {
-        $disk = $this->argument('disk');
-        $force = $this->option('force');
+        $disk = Media::diskName($this->argument('disk'));
 
-        $query = Media::when(!$force, function (Builder $query) use ($disk) {
-            return $query->where('disk', '!=', File::diskName($disk));
-        });
+        $query = Media::query()
+            ->when(!$this->option('force'), function (Builder $query) use ($disk) {
+                return $query->where('disk', '!=', $disk);
+            });
 
         $bar = $this->output->createProgressBar($query->count());
 

@@ -2,7 +2,6 @@
 
 namespace Febalist\Laravel\Media\Commands;
 
-use Febalist\Laravel\File\File;
 use Febalist\Laravel\Media\Media;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
@@ -34,7 +33,7 @@ class MediaClear extends Command
 
         $query = Media::query()
             ->when($this->argument('disk'), function (Builder $builder, $disk) {
-                return $builder->where('disk', File::diskName($disk));
+                return $builder->where('disk', Media::diskName($disk));
             })
             ->when($this->option('delay'), function (Builder $builder, $delay) {
                 return $builder->where('updated_at', '<', now()->subMinutes($delay));
