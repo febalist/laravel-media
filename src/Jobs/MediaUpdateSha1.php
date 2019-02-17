@@ -16,6 +16,7 @@ class MediaUpdateSha1 implements ShouldQueue
         getRestoredPropertyValue as getRestoredPropertyValueTrait;
     }
 
+    public $deleteWhenMissingModels = true;
     protected $media;
 
     /**
@@ -35,9 +36,7 @@ class MediaUpdateSha1 implements ShouldQueue
      */
     public function handle()
     {
-        if ($this->media) {
-            $this->media->updateSha1(true);
-        }
+        $this->media->updateSha1(true);
     }
 
     protected function getRestoredPropertyValue($value)
