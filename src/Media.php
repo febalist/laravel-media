@@ -7,6 +7,7 @@ use Febalist\Laravel\Media\Jobs\MediaConvert;
 use Febalist\Laravel\Media\Jobs\MediaUpdateSha1;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Intervention\Image\Exception\NotReadableException;
 
 /**
  * @property-read Model       $model
@@ -236,7 +237,17 @@ class Media extends Model
 
                 $this->model->mediaConvert($converter);
 
-                foreach ($converter->results() as $result) {
+                try {
+                    $results = $converter->results();
+                } catch (NotReadableException $exception) {
+                    if (str_contains($exception->getMessage(), 'Unsupported image type')) {
+                        $results = [];
+                    } else {
+                        throw $exception;
+                    }
+                }
+
+                foreach ($results as $result) {
                     $conversions[] = $result->name;
                     $result->file->move([$this->file->directory(), $result->name, $this->file->name()], $this->disk);
                 }
