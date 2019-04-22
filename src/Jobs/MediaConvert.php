@@ -16,7 +16,6 @@ class MediaConvert implements ShouldQueue
         getRestoredPropertyValue as getRestoredPropertyValueTrait;
     }
 
-    public $deleteWhenMissingModels = true;
     protected $media;
 
     /**
@@ -36,7 +35,9 @@ class MediaConvert implements ShouldQueue
      */
     public function handle()
     {
-        $this->media->convert(true);
+        if ($this->media) {
+            $this->media->convert(true);
+        }
     }
 
     protected function getRestoredPropertyValue($value)
