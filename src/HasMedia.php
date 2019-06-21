@@ -140,7 +140,7 @@ trait HasMedia
     }
 
     /** @return string|null */
-    public function getMediaZipUrl($name = 'files.zip')
+    public function getMediaZipUrl($name = null)
     {
         $media = $this->getMedia();
         return $media->count() ? Media::zipUrl($media, $name) : null;

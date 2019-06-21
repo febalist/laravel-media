@@ -69,7 +69,7 @@ class Media extends Model
 
         $ids = $media->pluck('id')->implode(',');
 
-        return route_signed('media.zip', [$ids, $name]);
+        return route_signed('media.zip', [$ids, $name ?: 'media.zip']);
     }
 
     public static function boot()
