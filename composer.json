@@ -6,7 +6,7 @@
     }
   },
   "require": {
-    "febalist/laravel-file": "^5.11.3",
+    "febalist/laravel-file": "^5.12.1",
     "febalist/laravel-support": "^5.23|^6.4|^7.0|^8.0"
   },
   "extra": {
