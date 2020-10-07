@@ -1,2 +1,4 @@
-node_modules/
 *.log
+/vendor/
+/vomposer.lock
+node_modules/
