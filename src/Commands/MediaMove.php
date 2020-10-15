@@ -33,7 +33,8 @@ class MediaMove extends Command
 
         $query = Media::query()
             ->when(!$this->option('force'), function (Builder $query) use ($disk) {
-                return $query->where('disk', '!=', $disk);
+                return $query->where('disk', '!=', $disk)
+                    ->whereRaw('`disk` != `target_disk`');
             });
 
         $bar = $this->output->createProgressBar($query->count());
